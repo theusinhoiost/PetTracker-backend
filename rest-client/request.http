@@ -141,3 +141,6 @@ Content-Type: image/png
 GET {{imageUrl}}
 
 ###############################################################################
+
+GET {{baseUrl}}/restaurant
+Authorization: Bearer {{jwtToken}}

@@ -1,5 +1,5 @@
-import bcrypt from "bcryptjs";
-import { HashingService } from "./hashing.service";
+import bcrypt from 'bcryptjs';
+import { HashingService } from './hashing.service';
 
 export class BcryptHashingService extends HashingService {
   async hash(password: string): Promise<string> {
@@ -10,5 +10,4 @@ export class BcryptHashingService extends HashingService {
     const compare = await bcrypt.compare(password, hash);
     return compare;
   }
-
 }
