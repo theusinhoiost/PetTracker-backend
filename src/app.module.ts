@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { ConfigModule } from '@nestjs/config';
+import { PetModule } from './pet/pet.module';
 
 @Module({
   imports: [
@@ -21,8 +22,9 @@ import { ConfigModule } from '@nestjs/config';
       autoLoadEntities: process.env.DB_AUTO_LOAD_ENTITIES === '1',
     }),
     AuthModule,
+    PetModule,
   ],
   controllers: [],
   providers: [],
 })
-export class AppModule { }
+export class AppModule {}

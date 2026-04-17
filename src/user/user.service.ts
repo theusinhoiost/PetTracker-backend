@@ -20,10 +20,12 @@ export class UserService {
     private readonly userRepository: Repository<UserEntity>,
     private readonly hashingService: HashingService,
   ) {}
+
   async failIfEmailExists(email: string) {
     const exists = await this.userRepository.existsBy({ email });
     if (exists) throw new ConflictException('Email já existe');
   }
+
   async findOneByOrFail(userData: Partial<UserEntity>) {
     const user = await this.userRepository.findOneBy(userData);
 
@@ -33,32 +35,58 @@ export class UserService {
 
     return user;
   }
+
+  async findByEmailWithPassword(email: string) {
+    return this.userRepository
+      .createQueryBuilder('user')
+      .addSelect('user.password')
+      .where('user.email = :email', { email })
+      .getOne();
+  }
+
+  async findByIdWithPassword(id: string) {
+    return this.userRepository
+      .createQueryBuilder('user')
+      .addSelect('user.password')
+      .where('user.id = :id', { id })
+      .getOne();
+  }
+
   async create(dto: CreateUserDto) {
     const existsEmail = await this.userRepository.exists({
       where: { email: dto.email },
     });
+
     const existsPhone = await this.userRepository.exists({
       where: { phoneNumber: dto.phoneNumber },
     });
-    if (existsEmail || existsPhone) {
-      throw new ConflictException('Email ou telefone inválidos');
+
+    if (existsEmail) {
+      throw new ConflictException('Email já existe');
     }
+
+    if (existsPhone) {
+      throw new ConflictException('Telefone já existe');
+    }
+
     const hashedPassword = await this.hashingService.hash(dto.password);
-    const newUser: CreateUserDto = {
-      name: dto.name,
-      email: dto.email,
-      phoneNumber: dto.phoneNumber,
+
+    const created = this.userRepository.create({
+      ...dto,
       password: hashedPassword,
-    };
-    const created = await this.userRepository.save(newUser);
-    return created;
+    });
+
+    return this.userRepository.save(created);
   }
+
   async findByEmail(email: string) {
     return this.userRepository.findOneBy({ email });
   }
+
   async findByID(id: string) {
     return this.userRepository.findOneBy({ id });
   }
+
   async update(id: string, dto: UpdateUserDto) {
     if (!dto.name && !dto.email) {
       throw new BadRequestException('Dados não enviados');
@@ -66,36 +94,51 @@ export class UserService {
 
     const user = await this.findOneByOrFail({ id });
 
-    user.name = dto.name ?? user.name;
+    if (dto.name) {
+      user.name = dto.name;
+    }
 
     if (dto.email && dto.email !== user.email) {
       await this.failIfEmailExists(dto.email);
       user.email = dto.email;
       user.forceLogout = true;
     }
-    await this.userRepository.save(user);
-    return this.save(user);
+
+    return this.userRepository.save(user);
   }
+
   async updatePassword(id: string, dto: UpdatePasswordDto) {
-    const user = await this.findOneByOrFail({ id });
+    const user = await this.findByIdWithPassword(id);
+
+    if (!user || !user.password) {
+      throw new UnauthorizedException('Usuário ou senha inválidos');
+    }
+
     const isCurrentPasswordValid = await this.hashingService.compare(
       dto.currentPassword,
       user.password,
     );
-    if (!isCurrentPasswordValid)
-      throw new UnauthorizedException('Senha inválida');
+
+    if (!isCurrentPasswordValid) {
+      throw new UnauthorizedException('Senha atual incorreta');
+    }
+
     user.password = await this.hashingService.hash(dto.newPassword);
     user.forceLogout = true;
 
-    return this.save(user);
-  }
-  async save(user: UserEntity) {
     return this.userRepository.save(user);
   }
 
   async remove(id: string) {
-    const user = this.findOneByOrFail({ id });
+    const user = await this.findOneByOrFail({ id });
+
     await this.userRepository.delete({ id });
+
     return user;
+  }
+  async setForceLogout(userId: string, value: boolean) {
+    await this.userRepository.update(userId, {
+      forceLogout: value,
+    });
   }
 }

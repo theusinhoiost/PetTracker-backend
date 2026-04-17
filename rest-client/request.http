@@ -8,7 +8,7 @@
 
 @userNameForTesting = Luiz
 @userEmailForTesting = luiz@email.com
-@userPasswordForTesting = M@#123456
+@userPasswordForTesting = Ma@#123456
 @userNewPasswordForTesting = M@#123456
 @userPhoneNumber= 41952150590
 
@@ -22,7 +22,6 @@ Content-Type: application/json
 {
   "email": "{{userEmailForTesting}}",
   "password": "{{userPasswordForTesting}}"
-  
 }
 
 # USER ########################################################################

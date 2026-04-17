@@ -8,7 +8,6 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserService } from './user.service';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
@@ -19,10 +18,7 @@ import { UpdatePasswordDto } from './dto/update-password.dto';
 
 @Controller('user')
 export class UserController {
-  constructor(
-    private readonly configService: ConfigService,
-    private readonly userService: UserService,
-  ) {}
+  constructor(private readonly userService: UserService) {}
   @UseGuards(JwtAuthGuard)
   @Get('me')
   async findOne(@Req() req: AuthenticatedRequest) {
