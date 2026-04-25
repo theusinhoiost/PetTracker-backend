@@ -1,4 +1,4 @@
-import { UserEntity } from 'src/user/entities/user.entity';
+import { User } from 'src/user/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
@@ -8,7 +8,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 @Entity()
-export class PetEntity {
+export class Pet {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
@@ -24,10 +24,10 @@ export class PetEntity {
   @Column()
   species!: string;
 
-  @ManyToOne(() => UserEntity, (user) => user.id, {
+  @ManyToOne(() => User, (user) => user.id, {
     onDelete: 'CASCADE',
   })
-  owner!: UserEntity;
+  owner!: User;
 
   @CreateDateColumn()
   createdAt!: Date;

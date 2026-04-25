@@ -7,10 +7,10 @@
 @imageUrl = {{baseUrl}}{{imagePath}}
 
 @userNameForTesting = Luiz
-@userEmailForTesting = luiz@email.com
+@userEmailForTesting = luiz1@email.com
 @userPasswordForTesting = Ma@#123456
 @userNewPasswordForTesting = M@#123456
-@userPhoneNumber= 41952150590
+@userPhoneNumber= 41952150591
 
 # AUTH ########################################################################
 

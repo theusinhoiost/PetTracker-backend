@@ -9,6 +9,7 @@ import { PetModule } from './pet/pet.module';
   imports: [
     AuthModule,
     UserModule,
+    PetModule,
     ConfigModule.forRoot({
       isGlobal: true,
     }),
@@ -21,8 +22,6 @@ import { PetModule } from './pet/pet.module';
       synchronize: process.env.DB_SYNCHRONIZE === '1',
       autoLoadEntities: process.env.DB_AUTO_LOAD_ENTITIES === '1',
     }),
-    AuthModule,
-    PetModule,
   ],
   controllers: [],
   providers: [],
