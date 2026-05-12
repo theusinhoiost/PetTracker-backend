@@ -1,16 +1,14 @@
 @baseUrl = http://localhost:3000
 @jwtToken = {{authLogin.response.body.accessToken}}
 
-@postUuid = {{createPostOwned.response.body.id}}
-@postSlug = {{createPostOwned.response.body.slug}}
-@imagePath = {{uploadImage.response.body.url}}
-@imageUrl = {{baseUrl}}{{imagePath}}
+
+
 
 @userNameForTesting = Luiz
-@userEmailForTesting = luiz1@email.com
+@userEmailForTesting = luiz2@email.com
 @userPasswordForTesting = Ma@#123456
 @userNewPasswordForTesting = M@#123456
-@userPhoneNumber= 41952150591
+@userPhoneNumber= 41952150593
 
 # AUTH ########################################################################
 
@@ -70,76 +68,25 @@ Authorization: Bearer {{jwtToken}}
 DELETE {{baseUrl}}/user/me
 Authorization: Bearer {{jwtToken}}
 
-# POST ########################################################################
+#PET
+#######################################################################
+###Create Pet
+# @name getAllPets
+GET {{baseUrl}}/pet
+Authorization: Bearer {{jwtToken}}
 
-### Create post owned
-# @name createPostOwned
-POST {{baseUrl}}/post/me
+###Create Pet
+# @name createPet
+POST {{baseUrl}}/pet
 Content-Type: application/json
 Authorization: Bearer {{jwtToken}}
 
 {
-  "title": "Título do post",
-  "excerpt": "Excerto",
-  "content": "Conteúdo"
+  "name":"Tobilson",
+  "race":"Labrador",
+  "species":"dog",
+  "birthDate": "2008-05-22"
+  //,"erro":"rouba back"
 }
 
-### Read all post public
-# @name readAllPostPublic
-GET {{baseUrl}}/post/
 
-### Read one post public
-# @name readOnePostPublic
-GET {{baseUrl}}/post/{{postSlug}}
-
-### Read all post owned
-# @name readAllPostOwned
-GET {{baseUrl}}/post/me
-Authorization: Bearer {{jwtToken}}
-
-### Read one post owned
-# @name readOnePostOwned
-GET {{baseUrl}}/post/me/{{postUuid}}
-Authorization: Bearer {{jwtToken}}
-
-### Update one post owned
-# @name updateOnePostOwned
-PATCH {{baseUrl}}/post/me/{{postUuid}}
-Content-Type: application/json
-Authorization: Bearer {{jwtToken}}
-
-{
-  "title": "NOVO - Título do post",
-  "excerpt": "NOVO - Excerto",
-  "content": "NOVO - Conteúdo",
-  "published": true
-}
-
-### Delete one post owned
-# @name deleteOnePostOwned
-DELETE {{baseUrl}}/post/me/{{postUuid}}
-Authorization: Bearer {{jwtToken}}
-
-# UPLOAD ######################################################################
-
-### Upload Image
-# @name uploadImage
-POST {{baseUrl}}/upload
-Authorization: Bearer {{jwtToken}}
-Content-Type: multipart/form-data; boundary=----BryenFormBoundary
-
-------BryenFormBoundary
-Content-Disposition: form-data; name="file"; filename="exemplo.png"
-Content-Type: image/png
-
-< ../dev/images/sample-image.jpeg
-------BryenFormBoundary--
-
-### Read Image
-# @name readImage
-GET {{imageUrl}}
-
-###############################################################################
-
-GET {{baseUrl}}/restaurant
-Authorization: Bearer {{jwtToken}}

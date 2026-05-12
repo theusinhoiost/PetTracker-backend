@@ -1,6 +1,7 @@
 import {
-  BadRequestException,
+  ConflictException,
   Injectable,
+  NotAcceptableException,
   NotFoundException,
 } from '@nestjs/common';
 import { CreatePetDto } from './dto/create-pet.dto';
@@ -16,49 +17,97 @@ export class PetService {
     private readonly petRepository: Repository<Pet>,
   ) {}
 
-  async create(dto: CreatePetDto) {
-    const newPet: CreatePetDto = {
+  async failIfNameExists(name: string, userId: string) {
+    const exists = await this.petRepository.exists({
+      where: {
+        name,
+        owner: {
+          id: userId,
+        },
+      },
+    });
+
+    if (exists) {
+      throw new ConflictException('Você já cadastrou um pet com esse nome');
+    }
+  }
+
+  async create(dto: CreatePetDto, userId: string) {
+    await this.failIfNameExists(dto.name, userId);
+
+    const newPet = this.petRepository.create({
       name: dto.name,
       birthDate: dto.birthDate,
       race: dto.race,
       species: dto.species,
-    };
-    const created = await this.petRepository.save(newPet);
-    return created;
+      owner: { id: userId },
+    });
+
+    if (!newPet) {
+      throw new NotAcceptableException('Erro ao criar o Pet');
+    }
+
+    const createdPet = await this.petRepository.save(newPet);
+
+    return createdPet;
   }
 
-  findOne(id: string) {
-    return this.petRepository.findOneBy({ id });
-  }
-  async findOneByIDOrFail(PetData: Partial<Pet>) {
-    const pet = await this.petRepository.findOneBy(PetData);
+  async findOneByID(id: string, userId: string) {
+    const pet = await this.petRepository.findOne({
+      where: {
+        id,
+        owner: { id: userId },
+      },
+      relations: ['owner'],
+    });
 
     if (!pet) {
-      throw new NotFoundException('Pet não encontrado');
+      throw new NotFoundException(
+        'Pet não encontrado ou não pertence ao usuário',
+      );
     }
 
     return pet;
   }
 
-  async update(id: string, dto: UpdatePetDto) {
-    if (!dto.name && dto.birthDate) {
-      throw new BadRequestException('Dados não enviados');
+  async findAllPetsFromOneUser(userId: string) {
+    const pet = await this.petRepository.find({
+      where: {
+        owner: { id: userId },
+      },
+      relations: ['owner'],
+      order: {
+        name: 'asc',
+      },
+    });
+
+    if (!pet) {
+      throw new NotFoundException(
+        'Pets não encontrados ou não pertence ao usuário',
+      );
     }
 
-    const pet = await this.findOneByIDOrFail({ id });
+    return pet;
+  }
+  async findAll() {
+    const pet = await this.petRepository.find();
 
-    if (dto.name) {
-      pet.name = dto.name;
+    if (!pet) {
+      throw new NotFoundException('Pets não encontrados');
     }
 
-    if (dto.birthDate) {
-      pet.birthDate = dto.birthDate;
-    }
+    return pet;
+  }
+  async update(id: string, dto: UpdatePetDto, userId: string) {
+    const pet = await this.findOneByID(id, userId);
 
+    if (dto.name) pet.name = dto.name;
+    if (dto.birthDate) pet.birthDate = dto.birthDate;
     return this.petRepository.save(pet);
   }
 
-  remove(id: string) {
+  async remove(id: string, userId: string) {
+    await this.findOneByID(id, userId);
     return this.petRepository.delete({ id });
   }
 }

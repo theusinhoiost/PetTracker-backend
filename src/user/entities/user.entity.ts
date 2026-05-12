@@ -1,7 +1,9 @@
+import { Pet } from 'src/pet/entities/pet.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -24,6 +26,8 @@ export class User {
   isActive!: boolean;
   @Column({ default: 'owner' })
   role!: 'owner' | 'admin';
+  @OneToMany(() => Pet, (pet) => pet.owner)
+  pets!: Pet[];
   @CreateDateColumn()
   createdAt!: Date;
   @UpdateDateColumn()

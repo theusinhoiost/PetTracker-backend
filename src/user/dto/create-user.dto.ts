@@ -1,7 +1,7 @@
 import {
   IsEmail,
+  IsMobilePhone,
   IsNotEmpty,
-  IsPhoneNumber,
   IsString,
   IsStrongPassword,
   MaxLength,
@@ -34,6 +34,10 @@ export class CreateUserDto {
   )
   password!: string;
   //
-  @IsPhoneNumber('BR', { message: 'Precisa de um telefone válido' })
+  @IsMobilePhone(
+    'pt-BR',
+    { strictMode: false },
+    { message: 'Número de telefone inválido' },
+  )
   phoneNumber!: string;
 }

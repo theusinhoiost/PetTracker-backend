@@ -10,8 +10,8 @@ export class CreatePetDto {
   @IsNotEmpty({ message: 'Data de nascimento é obrigatória' })
   @Type(() => Date)
   @IsDate({ message: 'Data inválida' })
-  @MaxDate(new Date(), {
-    message: 'Data não pode ser no futuro',
+  @MaxDate(new Date(Date.now() + 24 * 60 * 60 * 1000), {
+    message: 'Data não pode ser no futuro!',
   })
   birthDate!: Date;
 

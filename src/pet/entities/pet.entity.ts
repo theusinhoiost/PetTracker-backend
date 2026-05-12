@@ -4,15 +4,20 @@ import {
   CreateDateColumn,
   Entity,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
+  RelationId,
   UpdateDateColumn,
 } from 'typeorm';
+import { Vaccine } from '../vaccine/entities/vaccine.entity';
+import { Weight } from '../weight/entities/weight.entity';
+
 @Entity()
 export class Pet {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column()
+  @Column({ unique: true })
   name!: string;
 
   @Column({ type: 'date' })
@@ -24,10 +29,19 @@ export class Pet {
   @Column()
   species!: string;
 
-  @ManyToOne(() => User, (user) => user.id, {
+  @ManyToOne(() => User, (user) => user.pets, {
     onDelete: 'CASCADE',
   })
   owner!: User;
+
+  @RelationId((pet: Pet) => pet.owner)
+  ownerId!: string;
+
+  @OneToMany(() => Vaccine, (vaccine) => vaccine.pet)
+  vaccines!: Vaccine[];
+
+  @OneToMany(() => Weight, (weight) => weight.pet)
+  weights!: Weight[];
 
   @CreateDateColumn()
   createdAt!: Date;
