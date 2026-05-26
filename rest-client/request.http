@@ -5,10 +5,10 @@
 
 
 @userNameForTesting = Luiz
-@userEmailForTesting = luiz2@email.com
+@userEmailForTesting = luiz@email.com
 @userPasswordForTesting = Ma@#123456
 @userNewPasswordForTesting = M@#123456
-@userPhoneNumber= 41952150593
+@userPhoneNumber= 41952150693
 
 # AUTH ########################################################################
 
@@ -70,19 +70,19 @@ Authorization: Bearer {{jwtToken}}
 
 #PET
 #######################################################################
-###Create Pet
+###Get all Pets
 # @name getAllPets
-GET {{baseUrl}}/pet
+GET {{baseUrl}}/pet/
 Authorization: Bearer {{jwtToken}}
 
 ###Create Pet
 # @name createPet
-POST {{baseUrl}}/pet
+POST {{baseUrl}}/pet/
 Content-Type: application/json
 Authorization: Bearer {{jwtToken}}
 
 {
-  "name":"Tobilson",
+  "name":"Tobilspppon",
   "race":"Labrador",
   "species":"dog",
   "birthDate": "2008-05-22"

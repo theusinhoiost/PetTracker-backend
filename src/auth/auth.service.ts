@@ -16,7 +16,7 @@ export class AuthService {
     const user = await this.userService.findByEmailWithPassword(body.email);
 
     if (!user) {
-      throw new UnauthorizedException('Algo está inválido ');
+      throw new UnauthorizedException('Algo está inválido');
     }
 
     const isPasswordValid = await this.hashingService.compare(
@@ -25,12 +25,12 @@ export class AuthService {
     );
 
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Algo está inválido pass');
+      throw new UnauthorizedException('Algo está inválido');
     }
 
     const JwtPayload: jwtPayload = {
-      sub: user.id,
-      email: user.email,
+      sub: user?.id,
+      email: user?.email,
     };
 
     const accessToken = await this.jwtService.signAsync(JwtPayload);

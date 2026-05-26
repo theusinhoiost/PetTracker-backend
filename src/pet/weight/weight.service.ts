@@ -38,7 +38,7 @@ export class WeightService {
     });
 
     if (weight.length === 0) {
-      throw new NotFoundException('Pesos não encontrados');
+      throw new NotFoundException('Histórico não encontrado');
     }
 
     return weight;
