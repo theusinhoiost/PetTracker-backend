@@ -64,8 +64,18 @@ export class UserService {
   async findByID(id: string) {
     return this.userRepository.findOneBy({ id });
   }
-
+  async updateRefreshToken(userId: string, refreshToken: string) {
+    return this.userRepository.update(
+      { id: userId },
+      {
+        hashedRefreshToken: refreshToken,
+      },
+    );
+  }
   //CRUD
+  async findAll() {
+    return this.userRepository.find();
+  }
   async create(dto: CreateUserDto) {
     const existsEmail = await this.userRepository.exists({
       where: { email: dto.email },

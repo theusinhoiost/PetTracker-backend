@@ -12,7 +12,7 @@ export class Vaccine {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
   @Column()
-  name!: string;
+  vaccineName!: string;
 
   @Column({ type: 'date' })
   applicationDate!: Date;

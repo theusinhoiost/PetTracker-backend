@@ -12,11 +12,12 @@ export class AuthService {
     private readonly hashingService: HashingService,
     private readonly jwtService: JwtService,
   ) {}
+
   async doLogin(body: LoginDto) {
     const user = await this.userService.findByEmailWithPassword(body.email);
 
     if (!user) {
-      throw new UnauthorizedException('Algo está inválido');
+      throw new UnauthorizedException('Email ou senha inválidos');
     }
 
     const isPasswordValid = await this.hashingService.compare(
@@ -25,18 +26,52 @@ export class AuthService {
     );
 
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Algo está inválido');
+      throw new UnauthorizedException('Email ou senha inválidos');
     }
 
-    const JwtPayload: jwtPayload = {
-      sub: user?.id,
-      email: user?.email,
-    };
+    const tokens = await this.generateTokens(user.id, user.email, user.role);
 
-    const accessToken = await this.jwtService.signAsync(JwtPayload);
+    const hashedRefreshToken = await this.hashingService.hash(
+      tokens.refreshToken,
+    );
+
+    await this.userService.updateRefreshToken(user.id, hashedRefreshToken);
 
     await this.userService.setForceLogout(user.id, false);
 
-    return { accessToken };
+    return {
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+      },
+    };
+  }
+
+  private async generateTokens(userId: string, email: string, role: string) {
+    const payload: jwtPayload = {
+      sub: userId,
+      email,
+      role,
+    };
+
+    const [accessToken, refreshToken] = await Promise.all([
+      this.jwtService.signAsync(payload, {
+        secret: process.env.JWT_ACCESS_SECRET,
+        expiresIn: '1h',
+      }),
+
+      this.jwtService.signAsync(payload, {
+        secret: process.env.JWT_REFRESH_SECRET,
+        expiresIn: '7d',
+      }),
+    ]);
+
+    return {
+      accessToken,
+      refreshToken,
+    };
   }
 }

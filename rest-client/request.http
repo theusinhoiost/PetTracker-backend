@@ -63,6 +63,13 @@ Authorization: Bearer {{jwtToken}}
 GET {{baseUrl}}/user/me
 Authorization: Bearer {{jwtToken}}
 
+### Read all user
+# @name readAllUser
+GET {{baseUrl}}/user/all
+Authorization: Bearer {{jwtToken}}
+
+
+
 ### Delete one user
 # @name deleteOneUser
 DELETE {{baseUrl}}/user/me
@@ -77,12 +84,12 @@ Authorization: Bearer {{jwtToken}}
 
 ###Create Pet
 # @name createPet
-POST {{baseUrl}}/pet/
+POST {{baseUrl}}/pet
 Content-Type: application/json
 Authorization: Bearer {{jwtToken}}
 
 {
-  "name":"Tobilspppon",
+  "name":"Mag",
   "race":"Labrador",
   "species":"dog",
   "birthDate": "2008-05-22"

@@ -15,6 +15,10 @@ import type { AuthenticatedRequest } from 'src/auth/types/authenticated-request'
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
+import { AuthGuard } from '@nestjs/passport';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { UserRole } from 'src/auth/enum/user-role.enum';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
 
 @Controller('user')
 export class UserController {
@@ -50,5 +54,11 @@ export class UserController {
   async remove(@Req() req: AuthenticatedRequest) {
     const user = await this.userService.remove(req.user.id);
     return new UserResponseDto(user);
+  }
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @Get('all')
+  findAll() {
+    return this.userService.findAll();
   }
 }

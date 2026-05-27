@@ -1,3 +1,4 @@
+import { UserRole } from 'src/auth/enum/user-role.enum';
 import { Pet } from 'src/pet/entities/pet.entity';
 import {
   Column,
@@ -24,8 +25,16 @@ export class User {
   forceLogout!: boolean;
   @Column({ default: true })
   isActive!: boolean;
-  @Column({ default: 'owner' })
-  role!: 'owner' | 'admin';
+  @Column({
+    nullable: true,
+  })
+  hashedRefreshToken?: string;
+  @Column({
+    type: 'enum',
+    enum: UserRole,
+    default: UserRole.USER,
+  })
+  role!: UserRole;
   @OneToMany(() => Pet, (pet) => pet.owner)
   pets!: Pet[];
   @CreateDateColumn()
