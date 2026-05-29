@@ -1,98 +1,251 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# PetTracker API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Backend da aplicação PetTracker desenvolvido com NestJS.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+O projeto foi criado para gerenciamento de pets com autenticação completa, upload de imagens utilizando AWS S3 e arquitetura modular.
 
-## Description
+---
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+# Tecnologias
 
-## Project setup
+- NestJS
+- TypeScript
+- PostgreSQL
+- TypeORM
+- JWT Authentication
+- Refresh Token
+- AWS S3
+- Multer
+- Docker
+- REST API
 
-```bash
-$ npm install
+---
+
+# Funcionalidades
+
+## Autenticação
+
+- Cadastro de usuário
+- Login com JWT
+- Refresh token
+- Rotas protegidas
+- Controle de permissões
+
+## Pets
+
+- Criar pet
+- Atualizar pet
+- Remover pet
+- Buscar pets do usuário
+- Upload de imagem do pet
+- Armazenamento de imagens na AWS S3
+
+## Upload
+
+- Upload multipart/form-data
+- Validação de tipo de arquivo
+- Validação de tamanho
+- Suporte para PNG e JPEG
+
+---
+
+# Arquitetura
+
+O projeto utiliza arquitetura modular do NestJS.
+
+```txt
+src/
+├── common/
+│   ├── decorators/
+│   ├── guards/
+│   ├── interceptors/
+│   └── s3/
+│
+├── modules/
+│   ├── auth/
+│   ├── user/
+│   └── pet/
+│
+├── config/
+└── main.ts
 ```
 
-## Compile and run the project
+---
 
-```bash
-# development
-$ npm run start
+# Variáveis de ambiente
 
-# watch mode
-$ npm run start:dev
+Crie um arquivo `.env`:
 
-# production mode
-$ npm run start:prod
+```env
+DATABASE_URL=
+DB_SYNCHRONIZE=
+DB_AUTO_LOAD_ENTITIES=
+
+JWT_SECRET=
+JWT_EXPIRATION=
+
+
+ENCRYPT_PASSWORD=
+IV_VALUE=
+
+
+AWS_REGION=
+AWS_BUCKET_NAME=
+AWS_ACCESS_KEY=
+AWS_SECRET_KEY=
 ```
 
-## Run tests
+---
+
+# Instalação
+
+## Clone o projeto
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+git clone https://github.com/seu-user/pettracker-backend.git
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+## Entre na pasta
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+cd pettracker-backend
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## Instale as dependências
 
-## Resources
+```bash
+npm install
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+---
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+# Rodando o projeto
 
-## Support
+## Desenvolvimento
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```bash
+npm run start:dev
+```
 
-## Stay in touch
+## Produção
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+```bash
+npm run build
+npm run start:prod
+```
 
-## License
+---
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+# Upload de imagens
+
+As imagens são armazenadas utilizando AWS S3.
+
+Fluxo:
+
+```txt
+Frontend
+   ↓
+NestJS
+   ↓
+Multer
+   ↓
+AWS S3
+   ↓
+PostgreSQL
+```
+
+Exemplo de URL gerada:
+
+```txt
+https://bucket-name.s3.region.amazonaws.com/image.png
+```
+
+---
+
+# Segurança
+
+- JWT authentication
+- Refresh token
+- Rotas protegidas
+- Validação de arquivos
+- Limite de upload
+- Controle de ownership dos pets
+
+---
+
+# Endpoints principais
+
+## Auth
+
+| Método | Endpoint      |
+| ------ | ------------- |
+| POST   | /auth/login   |
+| POST   | /auth/refresh |
+
+## User
+
+| Método | Endpoint |
+| ------ | -------- |
+| POST   | /user    |
+| GET    | /user/me |
+| PATCH  | /user/me |
+| DELETE | /user/me |
+
+## Pets
+
+| Método | Endpoint |
+| ------ | -------- |
+| POST   | /pet     |
+| GET    | /pet     |
+| PATCH  | /pet/:id |
+| DELETE | /pet/:id |
+
+---
+
+# Exemplo de upload
+
+```http
+POST /pet
+Content-Type: multipart/form-data
+Authorization: Bearer token
+```
+
+Campos:
+
+```txt
+name
+race
+species
+birthDate
+pet-img
+```
+
+---
+
+# Objetivo do projeto
+
+O PetTracker foi desenvolvido como projeto de portfólio com foco em backend moderno utilizando NestJS, autenticação JWT e integração com serviços AWS.
+
+O projeto busca simular funcionalidades utilizadas em aplicações SaaS reais.
+
+---
+
+# Melhorias futuras
+
+- Deploy em cloud
+- CI/CD
+- Presigned URLs
+- Cache com Redis
+- Upload múltiplo
+- Dashboard administrativo
+- Notificações
+- Monitoramento
+- Testes automatizados
+
+---
+
+# Autor
+
+Matheus Iost
+
+Full Stack Developer
