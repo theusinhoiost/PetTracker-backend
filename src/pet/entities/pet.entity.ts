@@ -25,9 +25,10 @@ export class Pet {
 
   @Column()
   race!: string;
-
   @Column()
   species!: string;
+  @Column({ nullable: true })
+  imageUrl!: string;
 
   @ManyToOne(() => User, (user) => user.pets, {
     onDelete: 'CASCADE',

@@ -97,3 +97,30 @@ Authorization: Bearer {{jwtToken}}
 }
 
 
+### Create Pet With Image
+POST {{baseUrl}}/pet
+Authorization: Bearer {{jwtToken}}
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="name"
+
+Mag
+--boundary
+Content-Disposition: form-data; name="race"
+
+Labrador
+--boundary
+Content-Disposition: form-data; name="species"
+
+dog
+--boundary
+Content-Disposition: form-data; name="birthDate"
+
+2008-05-22
+--boundary
+Content-Disposition: form-data; name="pet-img"; filename="dog.png"
+Content-Type: image/png
+
+< ../pictures/dog.png
+--boundary--

@@ -9,12 +9,14 @@ import { Pet } from './entities/pet.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UpdatePetDto } from './dto/update-pet.dto';
+import { S3Service } from 'src/common/s3/s3.service';
 
 @Injectable()
 export class PetService {
   constructor(
     @InjectRepository(Pet)
     private readonly petRepository: Repository<Pet>,
+    private readonly s3Service: S3Service,
   ) {}
 
   async failIfNameExists(name: string, userId: string) {
@@ -32,15 +34,22 @@ export class PetService {
     }
   }
 
-  async create(dto: CreatePetDto, userId: string) {
+  async create(dto: CreatePetDto, userId: string, file: Express.Multer.File) {
     await this.failIfNameExists(dto.name, userId);
+
+    const imageUrl = await this.s3Service.uploadFile(file);
 
     const newPet = this.petRepository.create({
       name: dto.name,
       birthDate: dto.birthDate,
       race: dto.race,
       species: dto.species,
-      owner: { id: userId },
+
+      imageUrl,
+
+      owner: {
+        id: userId,
+      },
     });
 
     if (!newPet) {

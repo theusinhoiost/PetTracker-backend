@@ -8,19 +8,45 @@ import {
   Get,
   ParseUUIDPipe,
   Delete,
+  UploadedFile,
+  UseInterceptors,
+  ParseFilePipeBuilder,
+  HttpStatus,
 } from '@nestjs/common';
 import { PetService } from './pet.service';
 import { CreatePetDto } from './dto/create-pet.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import type { AuthenticatedRequest } from 'src/auth/types/authenticated-request';
-
+import { FileInterceptor } from '@nestjs/platform-express';
+import 'multer';
+import { S3Service } from 'src/common/s3/s3.service';
 @UseGuards(JwtAuthGuard)
 @Controller('pet')
 export class PetController {
-  constructor(private readonly petService: PetService) {}
+  constructor(
+    private readonly petService: PetService,
+    private readonly s3Service: S3Service,
+  ) {}
   @Post()
-  create(@Body() dto: CreatePetDto, @Request() req: AuthenticatedRequest) {
-    return this.petService.create(dto, req.user.id);
+  @UseInterceptors(FileInterceptor('pet-img'))
+  create(
+    @Body() dto: CreatePetDto,
+    @Request() req: AuthenticatedRequest,
+    @UploadedFile(
+      new ParseFilePipeBuilder()
+        .addFileTypeValidator({
+          fileType: /^image\/(png|jpeg|jpg)$/,
+        })
+        .addMaxSizeValidator({
+          maxSize: 5 * 1024 * 1024,
+        })
+        .build({
+          errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+        }),
+    )
+    file: Express.Multer.File,
+  ) {
+    return this.petService.create(dto, req.user.id, file);
   }
   @Get(':id')
   getById(
