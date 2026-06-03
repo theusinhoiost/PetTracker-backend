@@ -1,12 +1,12 @@
 # PetTracker API
 
-Backend da aplicação PetTracker desenvolvido com NestJS.
+PetTracker application backend developed with NestJS.
 
-O projeto foi criado para gerenciamento de pets com autenticação completa, upload de imagens utilizando AWS S3 e arquitetura modular.
+The project was created for pet management with full authentication, image upload using AWS S3, and a modular architecture.
 
 ---
 
-# Tecnologias
+# Technologies
 
 - NestJS
 - TypeScript
@@ -21,73 +21,71 @@ O projeto foi criado para gerenciamento de pets com autenticação completa, upl
 
 ---
 
-# Funcionalidades
+# Features
 
-## Autenticação
+## Authentication
 
-- Cadastro de usuário
-- Login com JWT
+- User registration
+- Login with JWT
 - Refresh token
-- Rotas protegidas
-- Controle de permissões
+- Secure routes
+- Permission control
 
 ## Pets
 
-- Criar pet
-- Atualizar pet
-- Remover pet
-- Buscar pets do usuário
-- Upload de imagem do pet
-- Armazenamento de imagens na AWS S3
+- Create pet
+- Update pet
+- Remove pet
+- Search user's pets
+- Pet image upload
+- Image storage in AWS S3
 
 ## Upload
 
-- Upload multipart/form-data
-- Validação de tipo de arquivo
-- Validação de tamanho
-- Suporte para PNG e JPEG
+- Multipart/form-data upload
+- File type validation
+- Size validation
+- PNG and JPEG support
 
 ---
 
-# Arquitetura
+# Architecture
 
-O projeto utiliza arquitetura modular do NestJS.
+The project uses NestJS's modular architecture.
 
 ```txt
 src/
 ├── common/
-│   ├── decorators/
-│   ├── guards/
-│   ├── interceptors/
-│   └── s3/
+│ ├── decorators/
+│ ├── guards/
+│ ├── interceptors/
+│ └── s3/
 │
 ├── modules/
-│   ├── auth/
-│   ├── user/
-│   └── pet/
+│ ├── auth/
+│ ├── user/
+│ └── pet/
 │
 ├── config/
 └── main.ts
+
 ```
 
 ---
 
-# Variáveis de ambiente
+# Environment variables
 
-Crie um arquivo `.env`:
+Create a file `.env`:
 
-```env
-DATABASE_URL=
+```env DATABASE_URL=
 DB_SYNCHRONIZE=
 DB_AUTO_LOAD_ENTITIES=
 
 JWT_SECRET=
 JWT_EXPIRATION=
 
-
 ENCRYPT_PASSWORD=
 IV_VALUE=
-
 
 AWS_REGION=
 AWS_BUCKET_NAME=
@@ -97,154 +95,141 @@ AWS_SECRET_KEY=
 
 ---
 
-# Instalação
+# Installation
 
-## Clone o projeto
+## Clone the project
 
 ```bash
-git clone https://github.com/seu-user/pettracker-backend.git
+git clone https://github.com/your-user/pettracker-backend.git
 ```
 
-## Entre na pasta
+## Enter the folder
 
 ```bash
 cd pettracker-backend
 ```
 
-## Instale as dependências
+## Install the dependencies
 
 ```bash
 npm install
+
 ```
 
 ---
 
-# Rodando o projeto
+# Running the project
 
-## Desenvolvimento
+## Development
 
-```bash
+````bash
 npm run start:dev
-```
 
-## Produção
+# Production
 
-```bash
-npm run build
-npm run start:prod
-```
+bash bash npm run build npm run start:prod
 
 ---
 
-# Upload de imagens
+# Image Upload
 
-As imagens são armazenadas utilizando AWS S3.
+Images are stored using AWS S3.
 
-Fluxo:
+Flow:
 
-```txt
-Frontend
-   ↓
-NestJS
-   ↓
-Multer
-   ↓
-AWS S3
-   ↓
-PostgreSQL
-```
+txt Frontend
+↓ NestJS
+↓ Multer
 
-Exemplo de URL gerada:
+↓ AWS S3
 
-```txt
-https://bucket-name.s3.region.amazonaws.com/image.png
-```
+↓ PostgreSQL
+
+Example generated URL:
+
+txt https://bucket-name.s3.region.amazonaws.com/image.png
 
 ---
 
-# Segurança
+# Security
 
 - JWT authentication
 - Refresh token
-- Rotas protegidas
-- Validação de arquivos
-- Limite de upload
-- Controle de ownership dos pets
+- Protected routes
+- File validation
+- Upload limit
+- Pet ownership control
 
 ---
 
-# Endpoints principais
+# Main Endpoints
 
-## Auth
+# Auth
 
-| Método | Endpoint      |
+| Method | Endpoint |
+
 | ------ | ------------- |
-| POST   | /auth/login   |
-| POST   | /auth/refresh |
 
-## User
+| POST | /auth/login |
+| POST | /auth/refresh |
 
-| Método | Endpoint |
+##User
+
+| Method | Endpoint |
 | ------ | -------- |
-| POST   | /user    |
-| GET    | /user/me |
-| PATCH  | /user/me |
+| POST | /user |
+| GET | /user/me |
+| PATCH | /user/me |
 | DELETE | /user/me |
 
 ## Pets
 
-| Método | Endpoint |
+| Method | Endpoint |
 | ------ | -------- |
-| POST   | /pet     |
-| GET    | /pet     |
-| PATCH  | /pet/:id |
+| POST | /pet |
+| GET | /pet |
+| PATCH | /pet/:id |
 | DELETE | /pet/:id |
 
 ---
 
-# Exemplo de upload
+# Example of upload
 
-```http
-POST /pet
-Content-Type: multipart/form-data
-Authorization: Bearer token
-```
+```http POST /pet Content-Type: multipart/form-data Authorization: Bearer token
 
-Campos:
+````
 
-```txt
-name
-race
-species
-birthDate
-pet-img
+Fields:
+
+```txt name race species birthDate pet-img
+
 ```
 
 ---
 
-# Objetivo do projeto
+# Project Objective
 
-O PetTracker foi desenvolvido como projeto de portfólio com foco em backend moderno utilizando NestJS, autenticação JWT e integração com serviços AWS.
+PetTracker was developed as a portfolio project focusing on a modern backend using NestJS, JWT authentication, and integration with AWS services.
 
-O projeto busca simular funcionalidades utilizadas em aplicações SaaS reais.
+The project aims to simulate functionalities used in real SaaS applications.
 
 ---
 
-# Melhorias futuras
+# Future Improvements
 
-- Deploy em cloud
+- Cloud deployment
 - CI/CD
 - Presigned URLs
-- Cache com Redis
-- Upload múltiplo
-- Dashboard administrativo
-- Notificações
-- Monitoramento
-- Testes automatizados
+- Redis caching
+- Multiple uploads
+- Administrative dashboard
+- Notifications
+- Monitoring
+- Automated testing
 
 ---
 
-# Autor
+# Author
 
 Matheus Iost
 
