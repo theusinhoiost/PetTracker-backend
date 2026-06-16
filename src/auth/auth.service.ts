@@ -4,6 +4,9 @@ import { HashingService } from 'src/common/hashing/hashing.service';
 import { JwtService } from '@nestjs/jwt';
 import { jwtPayload } from './types/jwt-payloads.type';
 import { UserService } from 'src/user/user.service';
+import { Repository } from 'typeorm';
+import { User } from 'src/user/entities/user.entity';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class AuthService {
@@ -11,6 +14,8 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly hashingService: HashingService,
     private readonly jwtService: JwtService,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
   ) {}
 
   async doLogin(body: LoginDto) {
@@ -73,5 +78,42 @@ export class AuthService {
       accessToken,
       refreshToken,
     };
+  }
+  async refresh(refreshToken: string) {
+    const payload = this.jwtService.verify(refreshToken, {
+      secret: process.env.JWT_REFRESH_SECRET,
+    });
+
+    const user = await this.userRepository.findOne({
+      where: {
+        id: payload.sub,
+      },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException();
+    }
+    if (user.forceLogout) {
+      throw new UnauthorizedException();
+    }
+    if (!user.hashedRefreshToken) {
+      throw new UnauthorizedException();
+    }
+    const isValid = await this.hashingService.compare(
+      refreshToken,
+      user.hashedRefreshToken,
+    );
+
+    if (!isValid) {
+      throw new UnauthorizedException();
+    }
+
+    const tokens = await this.generateTokens(user.id, user.email, user.role);
+    const hashedRefreshToken = await this.hashingService.hash(
+      tokens.refreshToken,
+    );
+    await this.userService.updateRefreshToken(user.id, hashedRefreshToken);
+
+    return tokens;
   }
 }

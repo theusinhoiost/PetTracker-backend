@@ -23,10 +23,7 @@ import { S3Service } from 'src/common/s3/s3.service';
 @UseGuards(JwtAuthGuard)
 @Controller('pet')
 export class PetController {
-  constructor(
-    private readonly petService: PetService,
-    private readonly s3Service: S3Service,
-  ) {}
+  constructor(private readonly petService: PetService) {}
   @Post()
   @UseInterceptors(FileInterceptor('pet-img'))
   create(
@@ -35,10 +32,10 @@ export class PetController {
     @UploadedFile(
       new ParseFilePipeBuilder()
         .addFileTypeValidator({
-          fileType: /^image\/(png|jpeg|jpg)$/,
+          fileType: /^image\/(png|jpeg|webp)$/,
         })
         .addMaxSizeValidator({
-          maxSize: 5 * 1024 * 1024,
+          maxSize: 3 * 1024 * 1024,
         })
         .build({
           errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,

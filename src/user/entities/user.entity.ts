@@ -28,7 +28,7 @@ export class User {
   @Column({
     nullable: true,
   })
-  hashedRefreshToken?: string;
+  hashedRefreshToken!: string;
   @Column({
     type: 'enum',
     enum: UserRole,

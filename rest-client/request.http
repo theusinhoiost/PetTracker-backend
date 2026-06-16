@@ -1,4 +1,4 @@
-@baseUrl = http://localhost:3000
+@baseUrl = http://localhost:3001
 @jwtToken = {{authLogin.response.body.accessToken}}
 
 
@@ -6,12 +6,20 @@
 
 @userNameForTesting = Luiz
 @userEmailForTesting = luiz@email.com
+
 @userPasswordForTesting = Ma@#123456
 @userNewPasswordForTesting = M@#123456
 @userPhoneNumber= 41952150693
 
 # AUTH ########################################################################
 
+#Refresh
+# @name refresh
+POST {{baseUrl}}/auth/refresh
+Authorization: Bearer {{jwtToken}}
+# @name Logout
+###Logout
+POST {{baseUrl}}/auth/logout
 ### Auth login
 # @name authLogin
 POST {{baseUrl}}/auth/login
@@ -93,7 +101,7 @@ Authorization: Bearer {{jwtToken}}
   "race":"Labrador",
   "species":"dog",
   "birthDate": "2008-05-22"
-  //,"erro":"rouba back"
+  //"erro":"rouba back"
 }
 
 

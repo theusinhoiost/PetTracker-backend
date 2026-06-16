@@ -6,15 +6,18 @@ import { JwtStrategy } from './jwt.strategy';
 import { CommonModule } from 'src/common/common.module';
 import { UserModule } from 'src/user/user.module';
 import { RolesGuard } from './guards/roles.guard';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { User } from 'src/user/entities/user.entity';
 
 @Module({
   exports: [],
   imports: [
+    TypeOrmModule.forFeature([User]),
     UserModule,
     CommonModule,
     JwtModule.registerAsync({
       useFactory: () => {
-        const secret = process.env.JWT_SECRET;
+        const secret = process.env.JWT_ACCESS_SECRET;
         const expires = process.env.JWT_EXPIRATION
           ? Number(process.env.JWT_EXPIRATION)
           : 86400;
