@@ -15,6 +15,7 @@ async function bootstrap() {
     }),
   );
   app.use(cookieParser());
+  app.enableCors();
   const config = new DocumentBuilder()
     .setTitle('PetTracker')
     .setDescription('The PetTracker API description')
@@ -23,6 +24,6 @@ async function bootstrap() {
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, documentFactory);
 
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(process.env.PORT ?? 3001);
 }
 void bootstrap();

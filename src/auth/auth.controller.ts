@@ -9,10 +9,12 @@ import {
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import type { Response, Request } from 'express';
+import { Throttle } from '@nestjs/throttler';
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
   @Post('login')
+  @Throttle({ default: { ttl: 60000, limit: 5 } })
   async login(
     @Body() body: LoginDto,
     @Res({ passthrough: true }) response: Response,
@@ -40,6 +42,7 @@ export class AuthController {
     };
   }
   @Post('refresh')
+  @Throttle({ default: { ttl: 30, limit: 20 } })
   async refresh(
     @Req() req: Request,
     @Res({ passthrough: true }) response: Response,

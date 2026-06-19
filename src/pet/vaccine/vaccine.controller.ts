@@ -12,8 +12,11 @@ import { VaccineService } from './vaccine.service';
 import { CreateVaccineDto } from './dto/create-vaccine.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import type { AuthenticatedRequest } from 'src/auth/types/authenticated-request';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 @UseGuards(JwtAuthGuard)
+@ApiTags('vaccines')
+@ApiBearerAuth()
 @Controller('vaccines')
 export class VaccineController {
   constructor(private readonly vaccineService: VaccineService) {}

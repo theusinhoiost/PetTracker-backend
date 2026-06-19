@@ -3,8 +3,11 @@ import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { WeightService } from './weight.service';
 import { CreateWeightDto } from './dto/create-weight.dto';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 @UseGuards(JwtAuthGuard)
+@ApiTags('weight')
+@ApiBearerAuth()
 @Controller('weight')
 export class WeightController {
   constructor(private readonly weightService: WeightService) {}

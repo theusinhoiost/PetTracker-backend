@@ -19,7 +19,9 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import type { AuthenticatedRequest } from 'src/auth/types/authenticated-request';
 import { FileInterceptor } from '@nestjs/platform-express';
 import 'multer';
-import { S3Service } from 'src/common/s3/s3.service';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+@ApiBearerAuth()
+@ApiTags('pets')
 @UseGuards(JwtAuthGuard)
 @Controller('pet')
 export class PetController {
@@ -52,7 +54,7 @@ export class PetController {
   ) {
     return this.petService.findOneByID(id, req.user.id);
   }
-  @Get('all/:id')
+  @Get()
   getAllPetsFromUser(@Request() req: AuthenticatedRequest) {
     return this.petService.findAllPetsFromOneUser(req.user.id);
   }

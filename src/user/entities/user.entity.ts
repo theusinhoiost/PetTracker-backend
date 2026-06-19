@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { UserRole } from 'src/auth/enum/user-role.enum';
 import { Pet } from 'src/pet/entities/pet.entity';
 import {
@@ -14,6 +15,7 @@ export class User {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
   @Column()
+  @ApiProperty({ example: 'Luiz', description: 'The user name' })
   name!: string;
   @Column({ unique: true })
   email!: string;

@@ -19,11 +19,14 @@ import { AuthGuard } from '@nestjs/passport';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { UserRole } from 'src/auth/enum/user-role.enum';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('users')
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @Get('me')
   async findOne(@Req() req: AuthenticatedRequest) {
     const user = await this.userService.findOneByOrFail({ id: req.user.id });
@@ -34,13 +37,17 @@ export class UserController {
     const user = await this.userService.create(dto);
     return new UserResponseDto(user);
   }
+
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @Patch('me')
   async update(@Req() req: AuthenticatedRequest, @Body() dto: UpdateUserDto) {
     const user = await this.userService.update(req.user.id, dto);
     return new UserResponseDto(user);
   }
+
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @Patch('me/password')
   async updatePAssword(
     @Req() req: AuthenticatedRequest,
@@ -49,7 +56,9 @@ export class UserController {
     const user = await this.userService.updatePassword(req.user.id, dto);
     return new UserResponseDto(user);
   }
+
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @Delete('me')
   async remove(@Req() req: AuthenticatedRequest) {
     const user = await this.userService.remove(req.user.id);

@@ -87,7 +87,7 @@ Authorization: Bearer {{jwtToken}}
 #######################################################################
 ###Get all Pets
 # @name getAllPets
-GET {{baseUrl}}/pet/
+GET {{baseUrl}}/pet
 Authorization: Bearer {{jwtToken}}
 
 ###Create Pet
@@ -101,7 +101,6 @@ Authorization: Bearer {{jwtToken}}
   "race":"Labrador",
   "species":"dog",
   "birthDate": "2008-05-22"
-  //"erro":"rouba back"
 }
 
 
@@ -132,3 +131,10 @@ Content-Type: image/png
 
 < ../pictures/dog.png
 --boundary--
+
+#VACCINE
+#######################################################################
+
+
+#WEIGHT
+#######################################################################

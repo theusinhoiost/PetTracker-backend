@@ -8,6 +8,8 @@ import { UserModule } from 'src/user/user.module';
 import { RolesGuard } from './guards/roles.guard';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from 'src/user/entities/user.entity';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   exports: [],
@@ -35,7 +37,15 @@ import { User } from 'src/user/entities/user.entity';
       },
     }),
   ],
-  providers: [AuthService, JwtStrategy, RolesGuard],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    RolesGuard,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
   controllers: [AuthController],
 })
 export class AuthModule {}
