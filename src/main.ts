@@ -8,6 +8,10 @@ import cookieParser from 'cookie-parser';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.use(helmet());
+  app.enableCors({
+    origin: ['http://localhost:3001', 'https://pet-tracker-web.vercel.app/'],
+    credentials: true,
+  });
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
