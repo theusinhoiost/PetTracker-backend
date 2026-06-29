@@ -7,7 +7,6 @@ export class LoginDto {
   )
   @IsNotEmpty({ message: 'Precisa ser um email válido' })
   email!: string;
-  @IsString({ message: 'Não pode ser uma senha inválido' })
-  @IsNotEmpty({ message: 'Não pode ser uma senha vazia' })
+  @IsString({ message: 'Não pode ser uma senha inválida' })
   password!: string;
 }

@@ -5,6 +5,7 @@ import {
   Get,
   Patch,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -20,6 +21,7 @@ import { Roles } from 'src/auth/decorators/roles.decorator';
 import { UserRole } from 'src/auth/enum/user-role.enum';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { PaginationDto } from './dto/pagination.dto';
 
 @ApiTags('users')
 @Controller('user')
@@ -67,7 +69,7 @@ export class UserController {
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(UserRole.ADMIN)
   @Get('all')
-  findAll() {
-    return this.userService.findAll();
+  findAll(@Query() pagination: PaginationDto) {
+    return this.userService.findAll(pagination.page, pagination.limit);
   }
 }

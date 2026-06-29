@@ -73,8 +73,24 @@ export class UserService {
     );
   }
   //CRUD
-  async findAll() {
-    return this.userRepository.find();
+  async findAll(page = 1, limit = 10) {
+    const [users, total] = await this.userRepository.findAndCount({
+      skip: (page - 1) * limit,
+      take: limit,
+      order: {
+        createdAt: 'DESC',
+      },
+    });
+
+    return {
+      data: users,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
   async create(dto: CreateUserDto) {
     const existsEmail = await this.userRepository.exists({

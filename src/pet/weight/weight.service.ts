@@ -43,4 +43,15 @@ export class WeightService {
 
     return weight;
   }
+  async remove(id: string) {
+    const weight = await this.weightRepo.findOne({
+      where: { id },
+    });
+
+    if (!weight) {
+      throw new NotFoundException('Peso não encontrada');
+    }
+
+    return this.weightRepo.remove(weight);
+  }
 }

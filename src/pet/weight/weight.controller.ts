@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { WeightService } from './weight.service';
@@ -23,5 +31,9 @@ export class WeightController {
   @Get(':petId')
   findByPet(@Param('petId') petId: string) {
     return this.weightService.findAllWeightFromOnePet(petId);
+  }
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.weightService.remove(id);
   }
 }
