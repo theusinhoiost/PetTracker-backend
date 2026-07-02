@@ -34,7 +34,7 @@ export class PetController {
     @UploadedFile(
       new ParseFilePipeBuilder()
         .addFileTypeValidator({
-          fileType: /^image\/(png|jpeg|webp)$/,
+          fileType: /^image\/(png|jpeg|webp|jpg)$/,
         })
         .addMaxSizeValidator({
           maxSize: 3 * 1024 * 1024,
@@ -45,6 +45,8 @@ export class PetController {
     )
     file: Express.Multer.File,
   ) {
+    console.log(file?.mimetype);
+    console.log(file?.originalname);
     return this.petService.create(dto, req.user.id, file);
   }
   @Get(':id')

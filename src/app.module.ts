@@ -8,12 +8,12 @@ import { ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
-    AuthModule,
-    UserModule,
-    PetModule,
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    AuthModule,
+    UserModule,
+    PetModule,
     TypeOrmModule.forRoot({
       type: 'postgres',
       url: process.env.DATABASE_URL,

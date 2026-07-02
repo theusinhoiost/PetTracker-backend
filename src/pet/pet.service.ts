@@ -44,17 +44,9 @@ export class PetService {
       birthDate: dto.birthDate,
       race: dto.race,
       species: dto.species,
-
       imageUrl,
-
-      owner: {
-        id: userId,
-      },
+      owner: { id: userId },
     });
-
-    if (!newPet) {
-      throw new NotAcceptableException('Erro ao criar o Pet');
-    }
 
     const createdPet = await this.petRepository.save(newPet);
 
