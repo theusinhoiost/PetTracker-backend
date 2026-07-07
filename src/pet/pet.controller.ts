@@ -12,6 +12,7 @@ import {
   UseInterceptors,
   ParseFilePipeBuilder,
   HttpStatus,
+  Patch,
 } from '@nestjs/common';
 import { PetService } from './pet.service';
 import { CreatePetDto } from './dto/create-pet.dto';
@@ -20,6 +21,7 @@ import type { AuthenticatedRequest } from 'src/auth/types/authenticated-request'
 import { FileInterceptor } from '@nestjs/platform-express';
 import 'multer';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { UpdatePetDto } from './dto/update-pet.dto';
 @ApiBearerAuth()
 @ApiTags('pets')
 @UseGuards(JwtAuthGuard)
@@ -66,5 +68,13 @@ export class PetController {
     @Request() req: AuthenticatedRequest,
   ) {
     return this.petService.remove(id, req.user.id);
+  }
+  @Patch(':id')
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updatePetDto: UpdatePetDto,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    return this.petService.update(id, updatePetDto, req.user.id);
   }
 }

@@ -102,8 +102,8 @@ export class PetService {
   async update(id: string, dto: UpdatePetDto, userId: string) {
     const pet = await this.findOneByID(id, userId);
 
-    if (dto.name) pet.name = dto.name;
-    if (dto.birthDate) pet.birthDate = dto.birthDate;
+    if (dto.race) pet.name = dto.race;
+
     return this.petRepository.save(pet);
   }
 
