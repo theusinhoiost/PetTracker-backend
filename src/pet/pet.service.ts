@@ -108,7 +108,16 @@ export class PetService {
   }
 
   async remove(id: string, userId: string) {
-    await this.findOneByID(id, userId);
-    return this.petRepository.delete({ id });
+    const pet = await this.findOneByID(id, userId);
+
+    if (pet.imageUrl) {
+      try {
+        await this.s3Service.deleteFile(pet.imageUrl);
+      } catch (error) {
+        console.error('Erro ao excluir imagem do S3:', error);
+      }
+    }
+
+    await this.petRepository.remove(pet);
   }
 }

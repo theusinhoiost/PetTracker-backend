@@ -62,7 +62,7 @@ export class PetController {
   getAllPetsFromUser(@Request() req: AuthenticatedRequest) {
     return this.petService.findAllPetsFromOneUser(req.user.id);
   }
-  @Delete()
+  @Delete(':id')
   delete(
     @Param('id', ParseUUIDPipe) id: string,
     @Request() req: AuthenticatedRequest,
