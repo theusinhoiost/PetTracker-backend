@@ -1,14 +1,14 @@
 import {
   ConflictException,
   Injectable,
-  NotAcceptableException,
   NotFoundException,
 } from '@nestjs/common';
-import { CreatePetDto } from './dto/create-pet.dto';
-import { Pet } from './entities/pet.entity';
-import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+
+import { CreatePetDto } from './dto/create-pet.dto';
 import { UpdatePetDto } from './dto/update-pet.dto';
+import { Pet } from './entities/pet.entity';
 import { S3Service } from 'src/common/s3/s3.service';
 
 @Injectable()
@@ -18,6 +18,43 @@ export class PetService {
     private readonly petRepository: Repository<Pet>,
     private readonly s3Service: S3Service,
   ) {}
+
+  // ===========================
+  // Helpers
+  // ===========================
+
+  private async mapPetWithImageUrl(pet: Pet) {
+    const { imageKey, ...petWithoutKey } = pet;
+
+    return {
+      ...petWithoutKey,
+      imageUrl: imageKey ? await this.s3Service.getSignedUrl(imageKey) : null,
+    };
+  }
+
+  private async mapPetsWithImageUrl(pets: Pet[]) {
+    return Promise.all(pets.map((pet) => this.mapPetWithImageUrl(pet)));
+  }
+
+  private async getPetEntity(id: string, userId: string): Promise<Pet> {
+    const pet = await this.petRepository.findOne({
+      where: {
+        id,
+        owner: { id: userId },
+      },
+      relations: ['owner'],
+    });
+
+    if (!pet) {
+      throw new NotFoundException('Pet não encontrado');
+    }
+
+    return pet;
+  }
+
+  // ===========================
+  // Regras de negócio
+  // ===========================
 
   async failIfNameExists(name: string, userId: string) {
     const exists = await this.petRepository.exists({
@@ -33,18 +70,13 @@ export class PetService {
       throw new ConflictException('Você já cadastrou um pet com esse nome');
     }
   }
-  async getPetImageUrl(petId: string): Promise<string | null> {
-    const pet = await this.petRepository.findOne({ where: { id: petId } });
-    if (!pet?.imageKey) return null;
 
-    return this.s3Service.getSignedUrl(pet.imageKey, 3600); // 1 hora
-  }
   async create(dto: CreatePetDto, userId: string, file: Express.Multer.File) {
     await this.failIfNameExists(dto.name, userId);
 
     const imageKey = await this.s3Service.uploadFile(file);
 
-    const newPet = this.petRepository.create({
+    const pet = this.petRepository.create({
       name: dto.name,
       birthDate: dto.birthDate,
       race: dto.race,
@@ -53,76 +85,77 @@ export class PetService {
       owner: { id: userId },
     });
 
-    const createdPet = await this.petRepository.save(newPet);
-    return createdPet;
+    const createdPet = await this.petRepository.save(pet);
+
+    return this.mapPetWithImageUrl(createdPet);
   }
 
-  async findOneByID(id: string, userId: string) {
+  async getPetImageUrl(petId: string): Promise<string | null> {
     const pet = await this.petRepository.findOne({
-      where: {
-        id,
-        owner: { id: userId },
-      },
+      where: { id: petId },
     });
 
-    if (!pet) {
-      throw new NotFoundException('Pet não encontrado');
+    if (!pet?.imageKey) {
+      return null;
     }
 
-    let imageUrl: string | null = null;
-
-    if (pet.imageKey) {
-      try {
-        imageUrl = await this.s3Service.getSignedUrl(pet.imageKey, 3600);
-      } catch (error) {
-        console.error('Erro ao gerar signed URL:', error);
-        imageUrl = null;
-      }
-    }
-
-    return {
-      ...pet,
-      imageUrl,
-    };
+    return this.s3Service.getSignedUrl(pet.imageKey);
   }
+
+  // ===========================
+  // Consultas
+  // ===========================
+
+  async findOneByID(id: string, userId: string) {
+    const pet = await this.getPetEntity(id, userId);
+
+    return this.mapPetWithImageUrl(pet);
+  }
+
   async findAllPetsFromOneUser(userId: string) {
-    const pet = await this.petRepository.find({
+    const pets = await this.petRepository.find({
       where: {
         owner: { id: userId },
       },
       relations: ['owner'],
       order: {
-        name: 'asc',
+        name: 'ASC',
       },
     });
 
-    if (!pet) {
-      throw new NotFoundException(
-        'Pets não encontrados ou não pertence ao usuário',
-      );
-    }
-
-    return pet;
+    return this.mapPetsWithImageUrl(pets);
   }
+
   async findAll() {
-    const pet = await this.petRepository.find();
+    const pets = await this.petRepository.find({
+      relations: ['owner'],
+    });
 
-    if (!pet) {
-      throw new NotFoundException('Pets não encontrados');
+    return this.mapPetsWithImageUrl(pets);
+  }
+
+  // ===========================
+  // Atualização
+  // ===========================
+
+  async update(id: string, dto: UpdatePetDto, userId: string) {
+    const pet = await this.getPetEntity(id, userId);
+
+    if (dto.race) {
+      pet.race = dto.race;
     }
 
-    return pet;
-  }
-  async update(id: string, dto: UpdatePetDto, userId: string) {
-    const pet = await this.findOneByID(id, userId);
+    const updatedPet = await this.petRepository.save(pet);
 
-    if (dto.race) pet.name = dto.race;
-
-    return this.petRepository.save(pet);
+    return this.mapPetWithImageUrl(updatedPet);
   }
+
+  // ===========================
+  // Exclusão
+  // ===========================
 
   async remove(id: string, userId: string) {
-    const pet = await this.findOneByID(id, userId);
+    const pet = await this.getPetEntity(id, userId);
 
     if (pet.imageKey) {
       try {
