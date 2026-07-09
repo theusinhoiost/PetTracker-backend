@@ -33,23 +33,27 @@ export class PetService {
       throw new ConflictException('Você já cadastrou um pet com esse nome');
     }
   }
+  async getPetImageUrl(petId: string): Promise<string | null> {
+    const pet = await this.petRepository.findOne({ where: { id: petId } });
+    if (!pet?.imageKey) return null;
 
+    return this.s3Service.getSignedUrl(pet.imageKey, 3600); // 1 hora
+  }
   async create(dto: CreatePetDto, userId: string, file: Express.Multer.File) {
     await this.failIfNameExists(dto.name, userId);
 
-    const imageUrl = await this.s3Service.uploadFile(file);
+    const imageKey = await this.s3Service.uploadFile(file);
 
     const newPet = this.petRepository.create({
       name: dto.name,
       birthDate: dto.birthDate,
       race: dto.race,
       species: dto.species,
-      imageUrl,
+      imageKey,
       owner: { id: userId },
     });
 
     const createdPet = await this.petRepository.save(newPet);
-
     return createdPet;
   }
 
@@ -59,18 +63,28 @@ export class PetService {
         id,
         owner: { id: userId },
       },
-      relations: ['owner'],
     });
 
     if (!pet) {
-      throw new NotFoundException(
-        'Pet não encontrado ou não pertence ao usuário',
-      );
+      throw new NotFoundException('Pet não encontrado');
     }
 
-    return pet;
-  }
+    let imageUrl: string | null = null;
 
+    if (pet.imageKey) {
+      try {
+        imageUrl = await this.s3Service.getSignedUrl(pet.imageKey, 3600);
+      } catch (error) {
+        console.error('Erro ao gerar signed URL:', error);
+        imageUrl = null;
+      }
+    }
+
+    return {
+      ...pet,
+      imageUrl,
+    };
+  }
   async findAllPetsFromOneUser(userId: string) {
     const pet = await this.petRepository.find({
       where: {
@@ -110,9 +124,9 @@ export class PetService {
   async remove(id: string, userId: string) {
     const pet = await this.findOneByID(id, userId);
 
-    if (pet.imageUrl) {
+    if (pet.imageKey) {
       try {
-        await this.s3Service.deleteFile(pet.imageUrl);
+        await this.s3Service.deleteFile(pet.imageKey);
       } catch (error) {
         console.error('Erro ao excluir imagem do S3:', error);
       }

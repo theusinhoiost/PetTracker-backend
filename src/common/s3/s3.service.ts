@@ -3,41 +3,54 @@ import {
   S3Client,
   PutObjectCommand,
   DeleteObjectCommand,
+  GetObjectCommand,
 } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 @Injectable()
 export class S3Service {
-  private s3 = new S3Client({
-    region: process.env.S3_AWS_REGION,
-    credentials: {
-      accessKeyId: process.env.S3_AWS_ACCESS_KEY!,
-      secretAccessKey: process.env.S3_AWS_SECRET_KEY!,
-    },
-  });
+  private s3: S3Client;
+
+  constructor() {
+    this.s3 = new S3Client({
+      region: process.env.S3_AWS_REGION,
+      credentials: {
+        accessKeyId: process.env.S3_AWS_ACCESS_KEY!,
+        secretAccessKey: process.env.S3_AWS_SECRET_KEY!,
+      },
+    });
+  }
 
   async uploadFile(file: Express.Multer.File): Promise<string> {
-    const fileName = `${Date.now()}-${file.originalname}`;
+    const fileName = `${Date.now()}-${file.originalname.replace(/\s+/g, '-')}`;
 
     await this.s3.send(
       new PutObjectCommand({
-        Bucket: process.env.S3_AWS_BUCKET_NAME,
+        Bucket: process.env.S3_AWS_BUCKET_NAME!,
         Key: fileName,
         Body: file.buffer,
         ContentType: file.mimetype,
       }),
     );
 
-    return `https://${process.env.S3_AWS_BUCKET_NAME}.s3.${process.env.S3_AWS_REGION}.amazonaws.com/${fileName}`;
+    return fileName;
   }
 
-  async deleteFile(imageUrl: string) {
-    if (!imageUrl) return;
+  async getSignedUrl(key: string, expiresIn: number = 3600): Promise<string> {
+    const command = new GetObjectCommand({
+      Bucket: process.env.S3_AWS_BUCKET_NAME!,
+      Key: key,
+    });
 
-    const key = new URL(imageUrl).pathname.slice(1);
+    return getSignedUrl(this.s3, command, { expiresIn });
+  }
+
+  async deleteFile(key: string): Promise<void> {
+    if (!key) return;
 
     await this.s3.send(
       new DeleteObjectCommand({
-        Bucket: process.env.S3_AWS_BUCKET_NAME,
+        Bucket: process.env.S3_AWS_BUCKET_NAME!,
         Key: key,
       }),
     );
