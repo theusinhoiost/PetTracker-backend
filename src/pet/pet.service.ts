@@ -158,13 +158,11 @@ export class PetService {
     const pet = await this.getPetEntity(id, userId);
 
     if (pet.imageKey) {
-      try {
-        await this.s3Service.deleteFile(pet.imageKey);
-      } catch (error) {
-        console.error('Erro ao excluir imagem do S3:', error);
-      }
+      await this.s3Service.deleteFile(pet.imageKey);
     }
 
-    await this.petRepository.remove(pet);
+    await this.petRepository.delete({
+      id: pet.id,
+    });
   }
 }
