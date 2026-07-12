@@ -5,7 +5,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -32,8 +32,10 @@ export class UserService {
     if (exists) throw new ConflictException('Telefone já existe');
   }
   //Finds
-  async findOneByOrFail(userData: Partial<User>) {
-    const user = await this.userRepository.findOneBy(userData);
+  async findOneByOrFail(userData: FindOptionsWhere<User>) {
+    const user = await this.userRepository.findOne({
+      where: userData,
+    });
 
     if (!user) {
       throw new NotFoundException('Usuário não encontrado');

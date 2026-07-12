@@ -43,9 +43,10 @@ export class PetController {
         })
         .build({
           errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+          fileIsRequired: false,
         }),
     )
-    file: Express.Multer.File,
+    file?: Express.Multer.File,
   ) {
     console.log(file?.mimetype);
     console.log(file?.originalname);

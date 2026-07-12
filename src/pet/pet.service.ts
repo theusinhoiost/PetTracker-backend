@@ -71,10 +71,15 @@ export class PetService {
     }
   }
 
-  async create(dto: CreatePetDto, userId: string, file: Express.Multer.File) {
+  async create(dto: CreatePetDto, userId: string, file?: Express.Multer.File) {
     await this.failIfNameExists(dto.name, userId);
 
-    const imageKey = await this.s3Service.uploadFile(file);
+    let imageKey: string | null = null;
+    if (file) {
+      imageKey = await this.s3Service.uploadFile(file);
+    } else {
+      console.log('Nenhuma imagem enviada');
+    }
 
     const pet = this.petRepository.create({
       name: dto.name,
