@@ -38,6 +38,9 @@ export class Pet {
   @RelationId((pet: Pet) => pet.owner)
   ownerId!: string;
 
+  @Column({ type: 'text', nullable: true })
+  notes?: string;
+
   @OneToMany(() => Vaccine, (vaccine) => vaccine.pet)
   vaccines!: Vaccine[];
 

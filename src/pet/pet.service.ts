@@ -80,10 +80,11 @@ export class PetService {
     } else {
       console.log('Nenhuma imagem enviada');
     }
-
+    const birthDate = dto.birthDate || new Date();
     const pet = this.petRepository.create({
       name: dto.name,
-      birthDate: dto.birthDate,
+      birthDate: birthDate,
+      notes: dto.notes,
       race: dto.race,
       species: dto.species,
       imageKey,

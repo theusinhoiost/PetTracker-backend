@@ -27,8 +27,8 @@ export class UserService {
     if (exists) throw new ConflictException('Email já existe');
   }
 
-  async failIfPhoneExists(phoneNumber: string) {
-    const exists = await this.userRepository.existsBy({ phoneNumber });
+  async failIfPhoneExists(phone: string) {
+    const exists = await this.userRepository.existsBy({ phone });
     if (exists) throw new ConflictException('Telefone já existe');
   }
   //Finds
@@ -100,7 +100,7 @@ export class UserService {
     });
 
     const existsPhone = await this.userRepository.exists({
-      where: { phoneNumber: dto.phoneNumber },
+      where: { phone: dto.phone },
     });
 
     if (existsEmail || existsPhone) {
@@ -118,7 +118,7 @@ export class UserService {
   }
 
   async update(id: string, dto: UpdateUserDto) {
-    if (!dto.name && !dto.email && dto.phoneNumber) {
+    if (!dto.name && !dto.email && dto.phone) {
       throw new BadRequestException('Dados não enviados');
     }
 
@@ -134,9 +134,9 @@ export class UserService {
       user.forceLogout = true;
     }
 
-    if (dto.phoneNumber && dto.phoneNumber !== user.phoneNumber) {
-      await this.failIfPhoneExists(dto.phoneNumber);
-      user.phoneNumber = dto.phoneNumber;
+    if (dto.phone && dto.phone !== user.phone) {
+      await this.failIfPhoneExists(dto.phone);
+      user.phone = dto.phone;
       user.forceLogout = true;
     }
 

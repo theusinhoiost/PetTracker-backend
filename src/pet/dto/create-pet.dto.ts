@@ -19,7 +19,9 @@ export class CreatePetDto {
   @IsDate({ message: 'Data inválida' })
   @MaxDate(new Date(), { message: 'Data não pode ser no futuro!' })
   birthDate!: Date;
-
+  @IsOptional()
+  @IsString()
+  notes?: string;
   @IsString({ message: 'Raça inválida' })
   @IsNotEmpty({ message: 'Raça não pode ser vazia' })
   race!: string;

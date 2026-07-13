@@ -22,7 +22,7 @@ export class User {
   @Column({ select: false })
   password!: string;
   @Column({ unique: true })
-  phoneNumber!: string;
+  phone!: string;
   @Column({ default: false })
   forceLogout!: boolean;
   @Column({ default: true })

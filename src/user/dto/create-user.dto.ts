@@ -39,5 +39,5 @@ export class CreateUserDto {
     { strictMode: false },
     { message: 'Número de telefone inválido' },
   )
-  phoneNumber!: string;
+  phone!: string;
 }
