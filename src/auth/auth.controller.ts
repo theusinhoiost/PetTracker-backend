@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   Post,
   Req,
   Res,
@@ -65,5 +66,13 @@ export class AuthController {
     return {
       accessToken: tokens.accessToken,
     };
+  }
+  @Get('me')
+  async getProfile(@Req() req: Request) {
+    const user = req.user;
+    if (!user) {
+      throw new UnauthorizedException('Usuário não autenticado');
+    }
+    return { user };
   }
 }
