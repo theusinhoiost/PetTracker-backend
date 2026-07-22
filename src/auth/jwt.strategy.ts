@@ -28,9 +28,17 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   async validate(payload: jwtPayload) {
     const user = await this.userService.findByID(payload.sub);
-    if (!user || user.forceLogout) {
+
+    if (!user || user.deletedAt !== null || !user.isActive) {
+      throw new UnauthorizedException(
+        'Usuário não encontrado ou conta removida',
+      );
+    }
+
+    if (user.forceLogout) {
       throw new UnauthorizedException('Login necessário');
     }
+
     return user;
   }
 }

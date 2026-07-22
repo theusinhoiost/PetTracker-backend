@@ -166,11 +166,7 @@ export class UserService {
   }
 
   async remove(id: string) {
-    const user = await this.findOneByOrFail({ id });
-
-    await this.userRepository.delete({ id });
-
-    return user;
+    await this.userRepository.softDelete({ id });
   }
   async setForceLogout(userId: string, value: boolean) {
     await this.userRepository.update(userId, {

@@ -80,40 +80,39 @@ export class AuthService {
     };
   }
   async refresh(refreshToken: string) {
-    const payload = this.jwtService.verify(refreshToken, {
-      secret: process.env.JWT_REFRESH_SECRET,
-    });
+    try {
+      const payload = this.jwtService.verify(refreshToken, {
+        secret: process.env.JWT_REFRESH_SECRET,
+      });
 
-    const user = await this.userRepository.findOne({
-      where: {
-        id: payload.sub,
-      },
-    });
+      const user = await this.userService.findByID(payload.sub); // melhor usar o service
 
-    if (!user) {
-      throw new UnauthorizedException();
+      if (!user || user.forceLogout || !user.hashedRefreshToken) {
+        throw new UnauthorizedException('Refresh token inválido');
+      }
+
+      const isValid = await this.hashingService.compare(
+        refreshToken,
+        user.hashedRefreshToken,
+      );
+
+      if (!isValid) {
+        throw new UnauthorizedException('Refresh token inválido');
+      }
+
+      const tokens = await this.generateTokens(user.id, user.email, user.role);
+      const hashedRefreshToken = await this.hashingService.hash(
+        tokens.refreshToken,
+      );
+
+      await this.userService.updateRefreshToken(user.id, hashedRefreshToken);
+
+      return {
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+      };
+    } catch (error) {
+      throw new UnauthorizedException('Refresh token inválido ou expirado');
     }
-    if (user.forceLogout) {
-      throw new UnauthorizedException();
-    }
-    if (!user.hashedRefreshToken) {
-      throw new UnauthorizedException();
-    }
-    const isValid = await this.hashingService.compare(
-      refreshToken,
-      user.hashedRefreshToken,
-    );
-
-    if (!isValid) {
-      throw new UnauthorizedException();
-    }
-
-    const tokens = await this.generateTokens(user.id, user.email, user.role);
-    const hashedRefreshToken = await this.hashingService.hash(
-      tokens.refreshToken,
-    );
-    await this.userService.updateRefreshToken(user.id, hashedRefreshToken);
-
-    return tokens;
   }
 }

@@ -4,6 +4,7 @@ import { Pet } from 'src/pet/entities/pet.entity';
 import {
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -43,4 +44,6 @@ export class User {
   createdAt!: Date;
   @UpdateDateColumn()
   updatedAt!: Date;
+  @DeleteDateColumn({ nullable: true })
+  deletedAt!: Date | null;
 }

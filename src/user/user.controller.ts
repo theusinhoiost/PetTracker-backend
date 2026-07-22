@@ -63,8 +63,8 @@ export class UserController {
   @ApiBearerAuth()
   @Delete('me')
   async remove(@Req() req: AuthenticatedRequest) {
-    const user = await this.userService.remove(req.user.id);
-    return new UserResponseDto(user);
+    await this.userService.remove(req.user.id);
+    return { message: 'Conta deletada com sucesso' };
   }
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(UserRole.ADMIN)

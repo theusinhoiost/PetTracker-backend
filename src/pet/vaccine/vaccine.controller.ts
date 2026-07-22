@@ -1,11 +1,11 @@
 import {
   Body,
-  Request,
   Controller,
   Delete,
   Get,
   Param,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { VaccineService } from './vaccine.service';
@@ -22,17 +22,20 @@ export class VaccineController {
   constructor(private readonly vaccineService: VaccineService) {}
 
   @Post()
-  create(@Body() dto: CreateVaccineDto, @Request() req: AuthenticatedRequest) {
+  create(@Body() dto: CreateVaccineDto, @Req() req: AuthenticatedRequest) {
     return this.vaccineService.create(dto, req.user.id);
   }
 
   @Get(':petId')
-  findAllByPet(@Param('petId') petId: string) {
-    return this.vaccineService.findAllByPet(petId);
+  findAllByPet(
+    @Param('petId') petId: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.vaccineService.findAllByPet(petId, req.user.id);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.vaccineService.remove(id);
+  remove(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
+    return this.vaccineService.remove(id, req.user.id);
   }
 }
