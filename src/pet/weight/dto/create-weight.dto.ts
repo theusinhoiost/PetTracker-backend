@@ -6,4 +6,6 @@ export class CreateWeightDto {
   @IsNumber()
   @IsNotEmpty()
   value!: number;
+  @IsNotEmpty()
+  measurementDay!: Date;
 }
