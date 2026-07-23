@@ -8,6 +8,7 @@ import {
   MaxDate,
 } from 'class-validator';
 import { PetSpecies } from '../types/pet-species';
+import { IsNotFutureDate } from 'src/common/validators/is-not-future-date';
 
 export class CreatePetDto {
   @IsString({ message: 'Nome inválido' })
@@ -17,7 +18,7 @@ export class CreatePetDto {
   @IsNotEmpty({ message: 'Data de nascimento é obrigatória' })
   @Type(() => Date)
   @IsDate({ message: 'Data inválida' })
-  @MaxDate(new Date(), { message: 'Data não pode ser no futuro!' })
+  @IsNotFutureDate()
   birthDate!: Date;
   @IsOptional()
   @IsString()
