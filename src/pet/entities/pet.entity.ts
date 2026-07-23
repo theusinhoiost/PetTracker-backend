@@ -1,4 +1,5 @@
 import { User } from 'src/user/entities/user.entity';
+
 import {
   Column,
   CreateDateColumn,
@@ -9,6 +10,7 @@ import {
   RelationId,
   UpdateDateColumn,
 } from 'typeorm';
+import { PetSpecies } from '../types/pet-species';
 import { Vaccine } from '../vaccine/entities/vaccine.entity';
 import { Weight } from '../weight/entities/weight.entity';
 
@@ -17,7 +19,7 @@ export class Pet {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column({ unique: true })
+  @Column()
   name!: string;
 
   @Column({ type: 'date' })
@@ -25,9 +27,17 @@ export class Pet {
 
   @Column()
   race!: string;
-  @Column()
-  species!: string;
-  @Column({ nullable: true, type: 'varchar' })
+
+  @Column({
+    type: 'enum',
+    enum: PetSpecies,
+  })
+  species!: PetSpecies;
+
+  @Column({
+    type: 'varchar',
+    nullable: true,
+  })
   imageKey: string | null = null;
 
   @ManyToOne(() => User, (user) => user.pets, {
@@ -38,13 +48,20 @@ export class Pet {
   @RelationId((pet: Pet) => pet.owner)
   ownerId!: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({
+    type: 'text',
+    nullable: true,
+  })
   notes?: string;
 
-  @OneToMany(() => Vaccine, (vaccine) => vaccine.pet)
+  @OneToMany(() => Vaccine, (vaccine) => vaccine.pet, {
+    cascade: false,
+  })
   vaccines!: Vaccine[];
 
-  @OneToMany(() => Weight, (weight) => weight.pet)
+  @OneToMany(() => Weight, (weight) => weight.pet, {
+    cascade: false,
+  })
   weights!: Weight[];
 
   @CreateDateColumn()
