@@ -20,7 +20,7 @@ export class Vaccine {
   applicationDate!: Date;
 
   @Column('date', { nullable: true })
-  nextDueDate?: Date;
+  nextDueDate!: Date | null;
 
   @Column({
     type: 'enum',

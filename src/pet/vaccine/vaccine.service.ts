@@ -39,6 +39,8 @@ export class VaccineService {
 
     const vaccine = this.vaccineRepository.create({
       ...dto,
+      applicationDate: new Date(dto.applicationDate),
+      nextDueDate: dto.nextDueDate ? new Date(dto.nextDueDate) : null,
       pet,
     });
 

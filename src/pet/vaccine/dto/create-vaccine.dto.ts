@@ -1,13 +1,15 @@
-import { IsDateString, IsString, IsUUID } from 'class-validator';
+import { IsDateString, IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class CreateVaccineDto {
   @IsString()
   vaccineName!: string;
 
   @IsDateString()
-  applicationDate!: Date;
+  applicationDate!: string;
+
   @IsDateString()
-  nextDueDate!: Date;
+  @IsOptional()
+  nextDueDate?: string;
 
   @IsUUID()
   petId!: string;

@@ -3,13 +3,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Weight } from './entities/weight.entity';
 import { CreateWeightDto } from './dto/create-weight.dto';
-import { UpdateWeightDto } from './dto/update-weight.dto';
+import { Pet } from '../entities/pet.entity';
 
 @Injectable()
 export class WeightService {
   constructor(
     @InjectRepository(Weight)
     private readonly weightRepository: Repository<Weight>,
+    private readonly petRepository: Repository<Pet>,
   ) {}
 
   private async getWeightEntity(id: string, userId: string): Promise<Weight> {
@@ -25,13 +26,24 @@ export class WeightService {
   }
 
   async create(dto: CreateWeightDto, userId: string) {
-    const weight = this.weightRepository.create({
-      ...dto,
-      pet: { id: dto.petId },
+    const pet = await this.petRepository.findOne({
+      where: { id: dto.petId, owner: { id: userId } },
     });
 
-    const created = await this.weightRepository.save(weight);
-    return created;
+    if (!pet) {
+      throw new NotFoundException(
+        'Pet não encontrado ou não pertence ao usuário',
+      );
+    }
+
+    // 2. Cria o peso
+    const weight = this.weightRepository.create({
+      value: dto.value,
+      measurementDay: new Date(dto.measurementDay),
+      pet,
+    });
+
+    return this.weightRepository.save(weight);
   }
 
   async findAllByUser(userId: string) {

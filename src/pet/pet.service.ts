@@ -71,31 +71,6 @@ export class PetService {
     }
   }
 
-  async create(dto: CreatePetDto, userId: string, file?: Express.Multer.File) {
-    await this.failIfNameExists(dto.name, userId);
-
-    let imageKey: string | null = null;
-    if (file) {
-      imageKey = await this.s3Service.uploadFile(file);
-    } else {
-      console.log('Nenhuma imagem enviada');
-    }
-    const birthDate = dto.birthDate || new Date();
-    const pet = this.petRepository.create({
-      name: dto.name,
-      birthDate: birthDate,
-      notes: dto.notes,
-      race: dto.race,
-      species: dto.species,
-      imageKey,
-      owner: { id: userId },
-    });
-
-    const createdPet = await this.petRepository.save(pet);
-
-    return this.mapPetWithImageUrl(createdPet);
-  }
-
   async getPetImageUrl(petId: string): Promise<string | null> {
     const pet = await this.petRepository.findOne({
       where: { id: petId },
@@ -107,7 +82,32 @@ export class PetService {
 
     return this.s3Service.getSignedUrl(pet.imageKey);
   }
+  // ===========================
+  // Criação
+  // ===========================
+  async create(dto: CreatePetDto, userId: string, file?: Express.Multer.File) {
+    await this.failIfNameExists(dto.name, userId);
 
+    let imageKey: string | null = null;
+    if (file) {
+      imageKey = await this.s3Service.uploadFile(file);
+    } else {
+      console.log('Nenhuma imagem enviada');
+    }
+
+    const pet = this.petRepository.create({
+      name: dto.name,
+      birthDate: new Date(dto.birthDate),
+      notes: dto.notes,
+      race: dto.race,
+      species: dto.species,
+      imageKey,
+      owner: { id: userId },
+    });
+
+    const createdPet = await this.petRepository.save(pet);
+    return this.mapPetWithImageUrl(createdPet);
+  }
   // ===========================
   // Consultas
   // ===========================

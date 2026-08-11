@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsUUID } from 'class-validator';
+import { IsDateString, IsNotEmpty, IsNumber, IsUUID } from 'class-validator';
 
 export class CreateWeightDto {
   @IsUUID()
@@ -6,6 +6,6 @@ export class CreateWeightDto {
   @IsNumber()
   @IsNotEmpty()
   value!: number;
-  @IsNotEmpty()
-  measurementDay!: Date;
+  @IsDateString()
+  measurementDay!: string;
 }
