@@ -46,13 +46,21 @@ export class VaccineService {
   }
 
   async findAllByPet(petId: string, userId: string) {
-    return this.vaccineRepository.find({
-      where: { pet: { id: petId, owner: { id: userId } } },
-      relations: ['pet'],
+    const pet = await this.petRepository.findOne({
+      where: { id: petId, owner: { id: userId } },
+    });
+
+    if (!pet) {
+      throw new NotFoundException(
+        'Pet não encontrado ou não pertence ao usuário',
+      );
+    }
+
+    return await this.vaccineRepository.find({
+      where: { pet: { id: petId } },
       order: { applicationDate: 'DESC' },
     });
   }
-
   async remove(id: string, userId: string) {
     const vaccine = await this.getVaccineEntity(id, userId);
     await this.vaccineRepository.remove(vaccine);

@@ -14,7 +14,7 @@ export class Vaccine {
   id!: string;
 
   @Column()
-  name!: string;
+  vaccineName!: string;
 
   @Column('date')
   applicationDate!: Date;

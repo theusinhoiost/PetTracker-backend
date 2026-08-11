@@ -2,7 +2,7 @@ import { IsDateString, IsString, IsUUID } from 'class-validator';
 
 export class CreateVaccineDto {
   @IsString()
-  name!: string;
+  vaccineName!: string;
 
   @IsDateString()
   applicationDate!: Date;
