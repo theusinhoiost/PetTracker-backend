@@ -10,6 +10,7 @@ export class WeightService {
   constructor(
     @InjectRepository(Weight)
     private readonly weightRepository: Repository<Weight>,
+    @InjectRepository(Pet)
     private readonly petRepository: Repository<Pet>,
   ) {}
 
