@@ -6,6 +6,8 @@ export class CreateVaccineDto {
 
   @IsDateString()
   applicationDate!: Date;
+  @IsDateString()
+  nextDueDate!: Date;
 
   @IsUUID()
   petId!: string;

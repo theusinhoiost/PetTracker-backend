@@ -6,6 +6,8 @@ import { ConfigModule } from '@nestjs/config';
 import { PetModule } from './pet/pet.module';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { ScheduleModule } from '@nestjs/schedule';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -16,7 +18,7 @@ import { APP_GUARD } from '@nestjs/core';
     AuthModule,
     UserModule,
     PetModule,
-
+    ScheduleModule.forRoot(),
     TypeOrmModule.forRoot({
       type: 'postgres',
       url: process.env.DATABASE_URL,
@@ -35,6 +37,8 @@ import { APP_GUARD } from '@nestjs/core';
         },
       ],
     }),
+
+    NotificationsModule,
   ],
   controllers: [],
   providers: [
