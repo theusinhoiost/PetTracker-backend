@@ -8,18 +8,20 @@ import { UserModule } from 'src/user/user.module';
 import { RolesGuard } from './guards/roles.guard';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from 'src/user/entities/user.entity';
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { GoogleStrategy } from './google.strategy';
 
 @Module({
-  exports: [],
   imports: [
     TypeOrmModule.forFeature([User]),
     UserModule,
     CommonModule,
+
     JwtModule.registerAsync({
       useFactory: () => {
         const secret = process.env.JWT_ACCESS_SECRET;
+
         const expires = process.env.JWT_EXPIRATION
           ? Number(process.env.JWT_EXPIRATION)
           : 86400;
@@ -32,20 +34,26 @@ import { APP_GUARD } from '@nestjs/core';
 
         return {
           secret,
-          signOptions: { expiresIn: expires },
+          signOptions: {
+            expiresIn: expires,
+          },
         };
       },
     }),
   ],
+
   providers: [
     AuthService,
     JwtStrategy,
     RolesGuard,
+    GoogleStrategy,
+
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
     },
   ],
+
   controllers: [AuthController],
 })
 export class AuthModule {}

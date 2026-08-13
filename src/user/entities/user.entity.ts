@@ -20,10 +20,32 @@ export class User {
   name!: string;
   @Column({ unique: true })
   email!: string;
-  @Column({ select: false })
-  password!: string;
-  @Column({ unique: true })
-  phone!: string;
+  @Column({
+    type: 'varchar',
+    nullable: true,
+    select: false,
+  })
+  password!: string | null;
+
+  @Column({
+    type: 'varchar',
+    unique: true,
+    nullable: true,
+  })
+  phone!: string | null;
+
+  @Column({
+    type: 'varchar',
+    unique: true,
+    nullable: true,
+  })
+  googleId!: string | null;
+
+  @Column({
+    type: 'varchar',
+    nullable: true,
+  })
+  avatar!: string | null;
   @Column({ default: false })
   forceLogout!: boolean;
   @Column({ default: true })
