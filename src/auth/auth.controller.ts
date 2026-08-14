@@ -4,12 +4,13 @@ import {
   Get,
   Post,
   Req,
+  Res,
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
-import type { Request } from 'express';
+import type { Request, Response } from 'express';
 import { Throttle } from '@nestjs/throttler';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { User } from 'src/user/entities/user.entity';
@@ -22,6 +23,7 @@ export class AuthController {
   /**
    * Login tradicional com email e senha.
    *
+   * O Next.js recebe os tokens e cria os cookies HttpOnly.
    */
   @Post('login')
   @Throttle({ default: { ttl: 60000, limit: 5 } })
@@ -43,56 +45,59 @@ export class AuthController {
   @Get('google')
   @UseGuards(GoogleAuthGuard)
   googleLogin() {
-    // Passport redireciona automaticamente para o Google.
+    // Passport redireciona automaticamente.
   }
 
   /**
    * Callback do Google.
    *
-   * Temporariamente mantém o fluxo atual.
-   * Depois vamos adaptar para o mesmo sistema de cookies
-   * controlado pelo Next.js.
+   * O Google autentica o usuário e o Nest gera
+   * um código temporário de uso único.
+   *
+   * Os JWTs nunca são colocados na URL.
    */
   @Get('google/callback')
   @UseGuards(GoogleAuthGuard)
-  async googleCallback(@Req() req: Request) {
+  async googleCallback(@Req() req: Request, @Res() response: Response) {
     if (!req.user) {
       throw new UnauthorizedException('Usuário não autenticado pelo Google');
     }
 
     const user = req.user as User;
 
-    const result = await this.authService.loginWithGoogle(user);
+    const code = await this.authService.createGoogleAuthCode(user);
 
     const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:3000';
 
-    /*
-     * Por enquanto não vamos colocar os tokens em cookies
-     * aqui porque o próximo passo será adaptar o OAuth
-     * para o Next.js controlar a sessão.
-     *
-     * Não deixe tokens na URL.
-     */
+    const redirectUrl = new URL('/auth/google/callback', frontendUrl);
+
+    redirectUrl.searchParams.set('code', code);
+
+    return response.redirect(redirectUrl.toString());
+  }
+
+  /**
+   * Troca o código temporário do Google
+   * pelos tokens da aplicação.
+   *
+   * O código:
+   * - expira em 2 minutos;
+   * - só pode ser utilizado uma vez;
+   * - não é armazenado em texto puro no banco.
+   */
+  @Post('google/exchange')
+  @Throttle({ default: { ttl: 60000, limit: 10 } })
+  async exchangeGoogleCode(@Body() body: { code: string }) {
+    if (!body.code || typeof body.code !== 'string') {
+      throw new UnauthorizedException('Código de autenticação não encontrado');
+    }
+
+    const result = await this.authService.exchangeGoogleAuthCode(body.code);
 
     return {
       accessToken: result.accessToken,
       refreshToken: result.refreshToken,
       user: result.user,
-      frontendUrl,
-    };
-  }
-
-  /**
-   * Logout.
-   *
-   * O Next.js será responsável por apagar os cookies.
-   * O Nest futuramente pode receber o logout para invalidar
-   * o refresh token armazenado no banco.
-   */
-  @Post('logout')
-  logout() {
-    return {
-      success: true,
     };
   }
 
@@ -102,7 +107,12 @@ export class AuthController {
    * O refresh token vem do Next.js no body.
    */
   @Post('refresh')
-  @Throttle({ default: { ttl: 30000, limit: 20 } })
+  @Throttle({
+    default: {
+      ttl: 30000,
+      limit: 20,
+    },
+  })
   async refresh(@Body() body: { refreshToken: string }) {
     if (!body.refreshToken || typeof body.refreshToken !== 'string') {
       throw new UnauthorizedException('Refresh token not found');
@@ -118,8 +128,6 @@ export class AuthController {
 
   /**
    * Retorna o usuário autenticado.
-   *
-   * O JwtAuthGuard continuará funcionando normalmente.
    */
   @Get('me')
   @UseGuards(JwtAuthGuard)

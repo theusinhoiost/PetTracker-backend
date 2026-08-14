@@ -7,6 +7,7 @@ import { Repository } from 'typeorm';
 import { User } from 'src/user/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { HashingService } from '../common/hashing/hashing.service';
+import { createHash, randomBytes } from 'crypto';
 
 @Injectable()
 export class AuthService {
@@ -38,6 +39,9 @@ export class AuthService {
     return this.createAuthResponse(user);
   }
 
+  /**
+   * Valida/cria/vincula o usuário vindo do Google.
+   */
   async validateGoogleUser(data: {
     googleId: string;
     email?: string;
@@ -57,7 +61,6 @@ export class AuthService {
       },
     });
 
-    // Usuário já possui essa conta Google vinculada
     if (user) {
       return user;
     }
@@ -69,7 +72,6 @@ export class AuthService {
       },
     });
 
-    // Usuário já possui conta no LikeDelivery
     if (user) {
       user.googleId = data.googleId;
 
@@ -92,10 +94,16 @@ export class AuthService {
     return this.userRepository.save(user);
   }
 
+  /**
+   * Login tradicional/Google.
+   */
   async loginWithGoogle(user: User) {
     return this.createAuthResponse(user);
   }
 
+  /**
+   * Cria access token + refresh token.
+   */
   private async createAuthResponse(user: User) {
     const tokens = await this.generateTokens(user.id, user.email, user.role);
 
@@ -118,6 +126,9 @@ export class AuthService {
     };
   }
 
+  /**
+   * Gera os JWTs.
+   */
   private async generateTokens(userId: string, email: string, role: string) {
     const payload: jwtPayload = {
       sub: userId,
@@ -143,6 +154,72 @@ export class AuthService {
     };
   }
 
+  /**
+   * Cria um código temporário para finalizar o login
+   * do Google no frontend.
+   *
+   * O código puro NÃO é salvo no banco.
+   */
+  async createGoogleAuthCode(user: User) {
+    const code = randomBytes(32).toString('base64url');
+
+    const codeHash = createHash('sha256').update(code).digest('hex');
+
+    const expiresAt = new Date(Date.now() + 2 * 60 * 1000);
+
+    await this.userRepository.update(user.id, {
+      googleAuthCodeHash: codeHash,
+      googleAuthCodeExpiresAt: expiresAt,
+    });
+
+    return code;
+  }
+
+  /**
+   * Troca o código temporário do Google pelos tokens da aplicação.
+   *
+   * O código é de uso único e expira em 2 minutos.
+   */
+  async exchangeGoogleAuthCode(code: string) {
+    if (!code || code.length < 20) {
+      throw new UnauthorizedException('Código de autenticação inválido');
+    }
+
+    const codeHash = createHash('sha256').update(code).digest('hex');
+
+    const user = await this.userRepository
+      .createQueryBuilder('user')
+      .addSelect(['user.googleAuthCodeHash', 'user.googleAuthCodeExpiresAt'])
+      .where('user.googleAuthCodeHash = :codeHash', {
+        codeHash,
+      })
+      .andWhere('user.googleAuthCodeExpiresAt > :now', {
+        now: new Date(),
+      })
+      .getOne();
+
+    if (!user) {
+      throw new UnauthorizedException(
+        'Código de autenticação inválido ou expirado',
+      );
+    }
+
+    /**
+     * Invalida imediatamente o código.
+     *
+     * Depois disso ele não poderá ser utilizado novamente.
+     */
+    await this.userRepository.update(user.id, {
+      googleAuthCodeHash: null,
+      googleAuthCodeExpiresAt: null,
+    });
+
+    return this.createAuthResponse(user);
+  }
+
+  /**
+   * Renova os tokens usando o refresh token.
+   */
   async refresh(refreshToken: string) {
     try {
       const payload = this.jwtService.verify<jwtPayload>(refreshToken, {

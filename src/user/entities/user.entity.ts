@@ -15,11 +15,17 @@ import {
 export class User {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
+
   @Column()
-  @ApiProperty({ example: 'Luiz', description: 'The user name' })
+  @ApiProperty({
+    example: 'Luiz',
+    description: 'The user name',
+  })
   name!: string;
+
   @Column({ unique: true })
   email!: string;
+
   @Column({
     type: 'varchar',
     nullable: true,
@@ -44,28 +50,50 @@ export class User {
   @Column({
     type: 'varchar',
     nullable: true,
+    select: false,
+  })
+  googleAuthCodeHash!: string | null;
+
+  @Column({
+    type: 'timestamp',
+    nullable: true,
+    select: false,
+  })
+  googleAuthCodeExpiresAt!: Date | null;
+
+  @Column({
+    type: 'varchar',
+    nullable: true,
   })
   avatar!: string | null;
+
   @Column({ default: false })
   forceLogout!: boolean;
+
   @Column({ default: true })
   isActive!: boolean;
+
   @Column({
     nullable: true,
   })
   hashedRefreshToken!: string;
+
   @Column({
     type: 'enum',
     enum: UserRole,
     default: UserRole.USER,
   })
   role!: UserRole;
+
   @OneToMany(() => Pet, (pet) => pet.owner)
   pets!: Pet[];
+
   @CreateDateColumn()
   createdAt!: Date;
+
   @UpdateDateColumn()
   updatedAt!: Date;
+
   @DeleteDateColumn({ nullable: true })
   deletedAt!: Date | null;
 }
