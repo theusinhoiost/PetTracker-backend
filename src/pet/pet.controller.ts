@@ -48,8 +48,6 @@ export class PetController {
     )
     file?: Express.Multer.File,
   ) {
-    console.log(file?.mimetype);
-    console.log(file?.originalname);
     return this.petService.create(dto, req.user.id, file);
   }
   @Get(':id')
