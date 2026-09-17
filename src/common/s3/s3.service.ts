@@ -19,7 +19,7 @@ export class S3Service {
         secretAccessKey: process.env.S3_AWS_SECRET_KEY!,
       },
       endpoint: process.env.S3_AWS_ENDPOINT_URL,
-      forcePathStyle: true, 
+      forcePathStyle: true,
     });
   }
 

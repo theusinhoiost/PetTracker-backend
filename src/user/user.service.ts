@@ -19,7 +19,7 @@ export class UserService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly hashingService: HashingService,
-  ) {}
+  ) { }
 
   //Testing phone and email
   async failIfEmailExists(email: string) {
@@ -118,7 +118,7 @@ export class UserService {
   }
 
   async update(id: string, dto: UpdateUserDto) {
-    if (!dto.name && !dto.email && dto.phone) {
+    if (!dto.name && !dto.email && !dto.phone && dto.avatar === undefined) {
       throw new BadRequestException('Dados não enviados');
     }
 
@@ -126,6 +126,10 @@ export class UserService {
 
     if (dto.name) {
       user.name = dto.name;
+    }
+
+    if (dto.avatar !== undefined) {
+      user.avatar = dto.avatar;
     }
 
     if (dto.email && dto.email !== user.email) {
