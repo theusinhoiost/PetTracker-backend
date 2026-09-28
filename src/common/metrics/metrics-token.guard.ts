@@ -6,8 +6,19 @@ import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 export class MetricsTokenGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const req = context.switchToHttp().getRequest();
-    if (req.path !== '/metrics') return true;
+
+    if (req.path !== '/metrics' && req.url !== '/metrics') return true;
     if (process.env.NODE_ENV !== 'production') return true;
-    return req.headers['x-metrics-token'] === process.env.METRICS_TOKEN;
+
+    const expected = process.env.METRICS_TOKEN;
+    if (!expected) return false;
+
+    const tokenHeader = req.headers['x-metrics-token'] as string | undefined;
+    const authHeader = req.headers['authorization'] as string | undefined;
+    const bearer = authHeader?.startsWith('Bearer ')
+      ? authHeader.replace('Bearer ', '')
+      : undefined;
+
+    return tokenHeader === expected || bearer === expected;
   }
 }
