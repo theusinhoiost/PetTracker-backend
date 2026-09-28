@@ -1,0 +1,21 @@
+prometheus.remote_write "metrics_hosted_prometheus" {
+  endpoint {
+    url = "https://prometheus-prod-40-prod-sa-east-1.grafana.net/api/prom/push"
+    basic_auth {
+      username = "SEU_USERNAME"
+      password = "SEU_TOKEN_GLC"
+    }
+  }
+}
+
+prometheus.scrape "pettracker" {
+  targets = [{
+    __address__ = "SEU-APP.up.railway.app:443",
+    __scheme__ = "https",
+    __metrics_path__ = "/metrics",
+  }]
+  extra_headers = {
+    "x-metrics-token" = "SEU_METRICS_TOKEN"
+  }
+  forward_to = [prometheus.remote_write.metrics_hosted_prometheus.receiver]
+}

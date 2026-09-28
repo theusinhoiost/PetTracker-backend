@@ -63,3 +63,5 @@ src/common/encrypting/crypto-encrypting.service.ts
 
 #Rest-client 
 rest-client/request.http
+
+config.alloy
