@@ -14,7 +14,6 @@ import { NotificationsModule } from './notifications/notifications.module';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-
     AuthModule,
     UserModule,
     PetModule,
@@ -22,9 +21,10 @@ import { NotificationsModule } from './notifications/notifications.module';
     TypeOrmModule.forRoot({
       type: 'postgres',
       url: process.env.DATABASE_URL,
-      ssl: {
-        rejectUnauthorized: false,
-      },
+      ssl:
+        process.env.NODE_ENV === 'production'
+          ? { rejectUnauthorized: false }
+          : false,
       synchronize: process.env.DB_SYNCHRONIZE === '1',
       autoLoadEntities: process.env.DB_AUTO_LOAD_ENTITIES === '1',
     }),

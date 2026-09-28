@@ -4,6 +4,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
+import { MetricsTokenGuard } from './common/metrics/metrics-token.guard';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -30,6 +31,8 @@ async function bootstrap() {
       referrerPolicy: { policy: 'no-referrer' },
     }),
   );
+  // ====================== METRICS ======================
+  app.useGlobalGuards(new MetricsTokenGuard());
 
   // ====================== CORS ======================
   app.enableCors({

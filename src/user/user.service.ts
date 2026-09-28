@@ -19,7 +19,7 @@ export class UserService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly hashingService: HashingService,
-  ) { }
+  ) {}
 
   //Testing phone and email
   async failIfEmailExists(email: string) {

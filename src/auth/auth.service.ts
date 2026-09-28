@@ -18,7 +18,7 @@ export class AuthService {
 
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-  ) { }
+  ) {}
 
   async doLogin(body: LoginDto) {
     const user = await this.userService.findByEmailWithPassword(body.email);

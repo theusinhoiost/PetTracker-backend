@@ -1,12 +1,29 @@
 # PetTracker API
+# 🐾 PetTracker API
 
 PetTracker application backend developed with NestJS.
+<div align="center">
 
 The project was created for pet management with full authentication, image upload using AWS S3, and a modular architecture.
+![NestJS](https://img.shields.io/badge/NestJS-E0234E?style=for-the-badge&logo=nestjs&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
+![TypeORM](https://img.shields.io/badge/TypeORM-FE0803?style=for-the-badge&logo=typeorm&logoColor=white)
+![AWS S3](https://img.shields.io/badge/AWS_S3-569A31?style=for-the-badge&logo=amazons3&logoColor=white)
+![Swagger](https://img.shields.io/badge/Swagger-85EA2D?style=for-the-badge&logo=swagger&logoColor=black)
+![pnpm](https://img.shields.io/badge/pnpm-F69220?style=for-the-badge&logo=pnpm&logoColor=white)
+![Jest](https://img.shields.io/badge/Jest-C21325?style=for-the-badge&logo=jest&logoColor=white)
+
+**A modern, production-ready, enterprise-grade RESTful API for comprehensive pet health tracking, vaccination scheduling, weight monitoring, automated proactive notifications, and multi-provider authentication.**
+
+[Live Frontend](https://pet-tracker-web.vercel.app) • [Interactive API Docs (Swagger)](#-interactive-api-documentation) • [Features](#-features) • [Getting Started](#-getting-started) • [Database Model](#-database-model-erd)
+
+</div>
 
 ---
 
 # Technologies
+## 📖 Overview
 
 - NestJS
 - TypeScript
@@ -18,20 +35,42 @@ The project was created for pet management with full authentication, image uploa
 - Multer
 - Docker
 - REST API
+**PetTracker API** is the core backend engine powering the PetTracker ecosystem. Engineered with **NestJS 11**, **TypeScript**, **PostgreSQL**, and **AWS S3**, it delivers a scalable architecture designed to handle real-world SaaS requirements:
+
+* **Enterprise Authentication**: Multi-provider login (Email/Password + Google OAuth 2.0 with single-use exchange codes), dual-token JWT rotation (short-lived access tokens and hashed refresh tokens), and Role-Based Access Control (RBAC).
+* **Defensive Security**: Protected by **Helmet**, strict CORS, AES-256-CTR token encryption, and granular Rate Limiting via `@nestjs/throttler`.
+* **Proactive Healthcare**: Complete management for pets, vaccination schedules, historical weight analytics, and an **automated daily background cron job** (`@nestjs/schedule`) delivering in-app vaccine expiration reminders.
+* **Cloud Object Storage**: AWS S3 integration with strict validation (mimetype, size limit), pre-signed expiring download URLs (`@aws-sdk/s3-request-presigner`), and automated asset cleanup on deletion.
 
 ---
 
 # Features
+## ⚡ Features
 
 ## Authentication
+### 🔐 Multi-Provider Authentication & Authorization
+* **Credentials Auth**: Email & password authentication with secure password hashing (`bcryptjs`).
+* **Google OAuth 2.0 Integration**: Single-use, short-lived authorization code exchange flow—tokens are never leaked directly in URL queries.
+* **Token Lifecycle**: Short-lived JWT Access Tokens combined with rotating Refresh Tokens hashed in PostgreSQL.
+* **Role-Based Access Control (RBAC)**: Custom `@Roles()` decorator and `RolesGuard` supporting `USER` and `ADMIN` tiers.
+* **Security Controls**: Force logout support and account soft deletion (`@DeleteDateColumn`).
 
 - User registration
 - Login with JWT
 - Refresh token
 - Secure routes
 - Permission control
+### 🛡️ Application Hardening & Security
+* **Helmet Middleware**: Comprehensive HTTP headers, including Content Security Policy (CSP), HTTP Strict Transport Security (HSTS), and referrer policies.
+* **Rate Limiting (Throttler)**: Global protection (150 req/min) paired with strict endpoint-specific limits (`/auth/login` at 5 req/min, `/auth/refresh` at 20 req/30s).
+* **Payload Validation**: Strict `ValidationPipe` with auto-transformation, whitelisting, and rejection of unallowed properties.
+* **Reversible Encryption**: Built-in `AES-256-CTR` service using `scrypt` key derivation and randomized IVs for sensitive credentials.
 
 ## Pets
+###  Pet Lifecycle Management
+* Complete CRUD for pets with species classification (`dog`, `cat`, `bird`, `other`).
+* Strict tenant isolation: owners can only access, modify, or delete their own pets.
+* Image upload with Multer, pre-filtered for allowed image types (`PNG`, `JPEG`, `WebP`) and max 3MB file size.
 
 - Create pet
 - Update pet
@@ -39,19 +78,94 @@ The project was created for pet management with full authentication, image uploa
 - Search user's pets
 - Pet image upload
 - Image storage in AWS S3
+### 💉 Healthcare & Vaccine Schedule
+* Track applied vaccines and upcoming booster doses (`applicationDate`, `nextDueDate`).
+* Status tracking: `APPLIED`, `PENDING`, and `OVERDUE`.
+* Cascade prevention and complete isolation per pet.
 
 ## Upload
+### ⚖️ Weight Tracking & Trend Analytics
+* Historical weight logging per pet with timestamped records.
+* Specialized analytic endpoint (`GET /weight/:petId/last`) returning recent metrics optimized for frontend progress charts.
 
 - Multipart/form-data upload
 - File type validation
 - Size validation
 - PNG and JPEG support
+### ⏰ Automated Background Engine & Notifications
+* **Daily Cron Job** at 8:00 AM (`@Cron(CronExpression.EVERY_DAY_AT_8AM)`):
+  * Scans all pet vaccines scheduled for renewal.
+  * Triggers proactive notifications at **7 days before**, **1 day before**, and **on overdue status**.
+  * Automatically marks vaccine status as `OVERDUE` when expired.
+* In-app notification management: unread count badges, single read, and bulk read operations.
+
+### ☁️ Cloud Storage (AWS S3 & Compatible)
+* Direct upload to private S3 buckets with sanitized, unique keys.
+* Generates temporary **Pre-signed URLs** on retrieval, keeping storage buckets secure and private.
+* Automatic file deletion on AWS S3 upon pet deletion or image updates.
+* S3-compatible: compatible out-of-the-box with **AWS S3**, **Cloudflare R2**, **MinIO**, **Supabase Storage**, and **LocalStack**.
 
 ---
 
 # Architecture
+## 🏛️ System Architecture
 
 The project uses NestJS's modular architecture.
+```mermaid
+flowchart TD
+    Client["Client / Frontend\n(Next.js / Web / Mobile)"]
+
+    subgraph SecurityLayer ["Security & Ingress Layer"]
+        Helmet["Helmet (CSP, HSTS)"]
+        Cors["CORS Configuration"]
+        Throttler["Throttler Guard (Rate Limiting)"]
+        Validation["ValidationPipe (Whitelist & DTOs)"]
+    end
+
+    subgraph AuthLayer ["Guards & Authentication"]
+        JwtGuard["JwtAuthGuard (Access Token)"]
+        GoogleGuard["GoogleAuthGuard (OAuth 2.0)"]
+        RolesGuard["RolesGuard (RBAC: USER | ADMIN)"]
+    end
+
+    subgraph CoreApp ["NestJS Modular Controllers & Services"]
+        AuthMod["AuthModule\n(Tokens, Exchange, Rotation)"]
+        UserMod["UserModule\n(Profile, Passwords, Admin)"]
+        PetMod["PetModule\n(CRUD, Ownership, Images)"]
+        VaccineMod["VaccineModule\n(Schedule & Doses)"]
+        WeightMod["WeightModule\n(Timeline & Trends)"]
+        NotificationMod["NotificationsModule\n(In-App Alerts)"]
+    end
+
+    subgraph BackgroundWorker ["Automated Scheduler"]
+        CronJob["Cron Engine (Daily @ 8:00 AM)\nVaccine Due Date & Overdue Scanner"]
+    end
+
+    subgraph Infrastructure ["Persistence & Cloud Infrastructure"]
+        Postgres[(PostgreSQL Database\nTypeORM Entities)]
+        S3["AWS S3 / S3-Compatible\n(Private Bucket + Presigned URLs)"]
+    end
+
+    Client --> Helmet
+    Helmet --> Cors --> Throttler --> Validation
+    Validation --> AuthLayer
+
+    AuthLayer --> CoreApp
+    CronJob -->|Scans & Notifies| NotificationMod
+
+    AuthMod --> Postgres
+    UserMod --> Postgres
+    PetMod --> Postgres
+    VaccineMod --> Postgres
+    WeightMod --> Postgres
+    NotificationMod --> Postgres
+
+    PetMod -->|Uploads / Deletes / Presigns| S3
+```
+
+---
+
+## 📂 Project Structure
 
 ```txt
 src/
@@ -60,98 +174,296 @@ src/
 │ ├── guards/
 │ ├── interceptors/
 │ └── s3/
+├── app.module.ts              # Root module (TypeORM, Throttler, Schedule, Config)
+├── main.ts                    # Bootstrap (Helmet, CORS, Pipes, Swagger)
 │
 ├── modules/
 │ ├── auth/
 │ ├── user/
 │ └── pet/
+├── auth/                      # Authentication & Authorization
+│   ├── decorators/            # @Roles() and custom decorators
+│   ├── dto/                   # Login, Token and Auth DTOs
+│   ├── guards/                # JwtAuthGuard, GoogleAuthGuard, RolesGuard
+│   ├── types/                 # AuthenticatedRequest, JwtPayloads
+│   ├── auth.controller.ts     # Auth endpoints (/auth/login, /auth/google, etc.)
+│   └── auth.service.ts        # OAuth flow, Token hashing & rotation
 │
 ├── config/
 └── main.ts
 
+├── user/                      # User & Account Management
+│   ├── dto/                   # CreateUser, UpdateUser, Password, Pagination DTOs
+│   ├── entities/              # User entity (soft deletes, roles, Google ID)
+│   ├── user.controller.ts     # User endpoints (/user, /user/me, /user/all)
+│   └── user.service.ts        # Account lifecycle & security
+│
+├── pet/                       # Pet Domain Core
+│   ├── dto/                   # CreatePet, UpdatePet DTOs
+│   ├── entities/              # Pet entity
+│   ├── types/                 # PetSpecies enum
+│   ├── pet.controller.ts      # Pet endpoints (/pet) with file upload
+│   ├── pet.service.ts         # Pet business rules & presigned image mapping
+│   │
+│   ├── vaccine/               # Vaccination Sub-Module
+│   │   ├── dto/               # CreateVaccine DTO
+│   │   ├── entities/          # Vaccine entity & VaccineStatus enum
+│   │   ├── vaccine.controller.ts
+│   │   └── vaccine.service.ts
+│   │
+│   └── weight/                # Weight Tracking Sub-Module
+│       ├── dto/               # CreateWeight DTO
+│       ├── entities/          # Weight entity
+│       ├── weight.controller.ts
+│       └── weight.service.ts
+│
+├── notifications/             # Automated Notifications & Cron Engine
+│   ├── entities/              # Notification entity & NotificationType enum
+│   ├── notifications.controller.ts
+│   └── notifications.service.ts # Daily 8:00 AM Cron scanner for vaccine alerts
+│
+└── common/                    # Shared Cross-Cutting Concerns
+    ├── encrypting/            # AES-256-CTR crypto service with scrypt
+    ├── filters/               # Global exception filters
+    ├── hashing/               # Password hashing abstraction (bcrypt)
+    ├── s3/                    # AWS S3 client & presigned URL generator
+    └── validators/            # Custom class-validators (e.g. IsNotFutureDate)
 ```
 
 ---
 
 # Environment variables
+## 🗄️ Database Model (ERD)
 
 Create a file `.env`:
+```mermaid
+erDiagram
+    USER ||--o{ PET : "owns"
+    USER ||--o{ NOTIFICATION : "receives"
+    PET ||--o{ VACCINE : "has"
+    PET ||--o{ WEIGHT : "tracks"
 
 ```env DATABASE_URL=
 DB_SYNCHRONIZE=
 DB_AUTO_LOAD_ENTITIES=
+    USER {
+        uuid id PK
+        string name
+        string email UK
+        string phone UK
+        string googleId UK
+        string avatar
+        enum role "USER | ADMIN"
+        boolean forceLogout
+        boolean isActive
+        string hashedRefreshToken
+        timestamp createdAt
+        timestamp updatedAt
+        timestamp deletedAt "Soft Delete"
+    }
 
 JWT_SECRET=
 JWT_EXPIRATION=
+    PET {
+        uuid id PK
+        string name
+        date birthDate
+        string race
+        enum species "dog | cat | bird | other"
+        string imageKey "S3 Object Key"
+        text notes
+        uuid ownerId FK
+        timestamp createdAt
+        timestamp updatedAt
+    }
 
 ENCRYPT_PASSWORD=
 IV_VALUE=
+    VACCINE {
+        uuid id PK
+        string vaccineName
+        date applicationDate
+        date nextDueDate
+        enum status "APPLIED | PENDING | OVERDUE"
+        uuid petId FK
+        timestamp createdAt
+    }
 
 AWS_REGION=
 AWS_BUCKET_NAME=
 AWS_ACCESS_KEY=
 AWS_SECRET_KEY=
+    WEIGHT {
+        uuid id PK
+        float weight
+        date date
+        uuid petId FK
+        timestamp createdAt
+    }
+
+    NOTIFICATION {
+        uuid id PK
+        uuid userId FK
+        uuid petId FK
+        string type "VACCINE_REMINDER | SYSTEM"
+        string title
+        string message
+        boolean read
+        timestamp createdAt
+    }
 ```
 
 ---
 
 # Installation
+## 🛠️ Tech Stack
 
 ## Clone the project
+| Category | Technologies |
+| :--- | :--- |
+| **Framework & Runtime** | [NestJS 11](https://nestjs.com/), [Node.js](https://nodejs.org/) (>= 20), [Express](https://expressjs.com/) |
+| **Language** | [TypeScript](https://www.typescriptlang.org/) (v5.7) |
+| **Database & ORM** | [PostgreSQL](https://www.postgresql.org/), [TypeORM](https://typeorm.io/) |
+| **Authentication & Auth** | [Passport.js](http://www.passportjs.org/), [JWT](https://jwt.io/), [Google OAuth 2.0](https://developers.google.com/identity/protocols/oauth2), [bcryptjs](https://github.com/dcodeIO/bcrypt.js) |
+| **Security & Hardening** | [Helmet](https://helmetjs.github.io/), [@nestjs/throttler](https://github.com/nestjs/throttler), `crypto` (AES-256-CTR) |
+| **Cloud Object Storage** | [AWS SDK v3 S3](https://aws.amazon.com/s3/), [@aws-sdk/s3-request-presigner](https://www.npmjs.com/package/@aws-sdk/s3-request-presigner) |
+| **Validation & Upload** | [class-validator](https://github.com/typestack/class-validator), [class-transformer](https://github.com/typestack/class-transformer), [Multer](https://github.com/expressjs/multer) |
+| **Background Processing** | [@nestjs/schedule](https://docs.nestjs.com/techniques/task-scheduling) (Cron Jobs) |
+| **API Documentation** | [Swagger / OpenAPI 3.0](https://swagger.io/) via `@nestjs/swagger` |
+| **Package Manager** | [pnpm](https://pnpm.io/) |
+| **Testing & Quality** | [Jest](https://jestjs.io/), [Supertest](https://github.com/ladjs/supertest), [ESLint v9](https://eslint.org/), [Prettier](https://prettier.io/) |
+
+---
+
+## ⚙️ Environment Variables
+
+Create a `.env` file in the project root based on [.env.example](file:///.env.example):
 
 ```bash
 git clone https://github.com/your-user/pettracker-backend.git
+cp .env.example .env
 ```
 
 ## Enter the folder
+| Variable | Required | Description | Example |
+| :--- | :---: | :--- | :--- |
+| `DATABASE_URL` | **Yes** | PostgreSQL connection connection string | `postgresql://postgres:password@localhost:5432/pettracker` |
+| `DB_AUTO_LOAD_ENTITIES` | **Yes** | Automatically load entities into TypeORM | `"1"` |
+| `DB_SYNCHRONIZE` | **Yes** | Sync DB schema (disable in production!) | `"1"` (dev) / `"0"` (prod) |
+| `JWT_ACCESS_SECRET` | **Yes** | Secret key for signing Access Tokens | `super_secret_access_key` |
+| `JWT_REFRESH_SECRET` | **Yes** | Secret key for signing Refresh Tokens | `super_secret_refresh_key` |
+| `JWT_EXPIRATION` | **Yes** | Expiration duration for Access Tokens | `15m` |
+| `ENCRYPT_PASSWORD` | **Yes** | Master key for AES-256-CTR reversible encryption | `my_super_strong_encrypt_secret_key` |
+| `IV_LENGTH` | **Yes** | Initialization Vector byte length (AES-CTR) | `16` |
+| `NODE_ENV` | No | Application environment (`development` / `production`) | `development` |
+| `PORT` | No | HTTP server port (defaults to 3001) | `3001` |
+| `FRONTEND_URL` | No | Frontend URL for OAuth redirects | `http://localhost:3000` |
+| `S3_AWS_ACCESS_KEY` | **Yes** | AWS S3 / Cloudflare R2 Access Key ID | `AKIAIOSFODNN7EXAMPLE` |
+| `S3_AWS_SECRET_KEY` | **Yes** | AWS S3 / Cloudflare R2 Secret Access Key | `wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY` |
+| `S3_AWS_BUCKET_NAME` | **Yes** | Name of the cloud storage bucket | `pettracker-storage` |
+| `S3_AWS_REGION` | **Yes** | AWS Region for the bucket | `us-east-1` |
+| `S3_AWS_ENDPOINT_URL` | No | Custom S3 endpoint (for MinIO, R2, or LocalStack) | `https://<account>.r2.cloudflarestorage.com` |
+| `GOOGLE_CLIENT_ID` | Optional | Google OAuth 2.0 Client ID | `your-id.apps.googleusercontent.com` |
+| `GOOGLE_CLIENT_SECRET` | Optional | Google OAuth 2.0 Client Secret | `GOCSPX-your-secret` |
+| `GOOGLE_CALLBACK_URL` | Optional | Registered Google OAuth Redirect Callback URI | `http://localhost:3001/auth/google/callback` |
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+Ensure you have installed:
+* [Node.js](https://nodejs.org/) (>= 20.x)
+* [pnpm](https://pnpm.io/) (`npm install -g pnpm`)
+* [PostgreSQL](https://www.postgresql.org/) (>= 15) or [Docker](https://www.docker.com/)
+
+### 1. Clone the repository
 
 ```bash
 cd pettracker-backend
+git clone https://github.com/theusinhoiost/PetTracker-backend.git
+cd PetTracker-backend
 ```
 
 ## Install the dependencies
+### 2. Install dependencies
 
 ```bash
 npm install
 
+pnpm install
 ```
 
 ---
+### 3. Start PostgreSQL with Docker (Optional)
 
 # Running the project
+If you don't have a local PostgreSQL instance running:
 
 ## Development
+```bash
+docker run --name pettracker-postgres \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_PASSWORD=postgres \
+  -e POSTGRES_DB=pettracker \
+  -p 5432:5432 -d postgres:16-alpine
+```
 
 ````bash
 npm run start:dev
+### 4. Configure environment variables
 
 # Production
+```bash
+cp .env.example .env
+# Edit .env with your PostgreSQL credentials and AWS S3 configuration
+```
 
 bash bash npm run build npm run start:prod
+### 5. Run the application
 
 ---
+```bash
+# Development (with Hot Reload)
+pnpm run start:dev
 
 # Image Upload
+# Debug mode
+pnpm run start:debug
 
 Images are stored using AWS S3.
+# Production build
+pnpm run build
+pnpm run start:prod
+```
 
 Flow:
+Once started, the API will be available at:
+* **API Base URL**: `http://localhost:3001`
+* **Swagger Documentation**: `http://localhost:3001/api`
 
 txt Frontend
 ↓ NestJS
 ↓ Multer
+---
 
 ↓ AWS S3
+## 📑 Interactive API Documentation
 
 ↓ PostgreSQL
+When running in development mode (`NODE_ENV !== 'production'`), interactive OpenAPI documentation is generated and served at:
 
 Example generated URL:
+👉 **`http://localhost:3001/api`**
 
 txt https://bucket-name.s3.region.amazonaws.com/image.png
+You can also use the ready-to-use HTTP request file located at [`rest-client/request.example.http`](file:///rest-client/request.example.http) using the VS Code REST Client or Thunder Client extension.
 
 ---
 
 # Security
+## 🛣️ API Endpoints Reference
 
 - JWT authentication
 - Refresh token
@@ -159,21 +471,51 @@ txt https://bucket-name.s3.region.amazonaws.com/image.png
 - File validation
 - Upload limit
 - Pet ownership control
+### 🔐 Authentication (`/auth`)
 
 ---
+| Method | Endpoint | Description | Rate Limit | Auth |
+| :--- | :--- | :--- | :---: | :---: |
+| `POST` | `/auth/login` | Authenticate with email and password | 5 req / min | Public |
+| `GET` | `/auth/google` | Trigger Google OAuth 2.0 flow | - | Public |
+| `GET` | `/auth/google/callback` | Google OAuth callback (issues 1-time code) | - | Public |
+| `POST` | `/auth/google/exchange` | Exchange Google code for JWT access & refresh tokens | 10 req / min | Public |
+| `POST` | `/auth/refresh` | Rotate and issue new access & refresh tokens | 20 req / 30s | Public |
+| `GET` | `/auth/me` | Fetch authenticated user context | - | Bearer JWT |
 
 # Main Endpoints
+### 👤 User Management (`/user`)
 
 # Auth
+| Method | Endpoint | Description | Auth |
+| :--- | :--- | :--- | :---: |
+| `POST` | `/user` | Register a new user account | Public |
+| `GET` | `/user/me` | Retrieve profile of the current logged-in user | Bearer JWT |
+| `PATCH` | `/user/me` | Update current user profile (name, avatar, phone) | Bearer JWT |
+| `PATCH` | `/user/me/password` | Change user password (`currentPassword` & `newPassword`) | Bearer JWT |
+| `DELETE` | `/user/me` | Soft delete the authenticated user account | Bearer JWT |
+| `GET` | `/user/all` | List all registered users (paginated) | Admin Only |
 
 | Method | Endpoint |
+### 🐾 Pets (`/pet`)
 
 | ------ | ------------- |
+| Method | Endpoint | Description | Auth |
+| :--- | :--- | :--- | :---: |
+| `POST` | `/pet` | Register a new pet (supports `multipart/form-data` image) | Bearer JWT |
+| `GET` | `/pet` | List all pets owned by the authenticated user | Bearer JWT |
+| `GET` | `/pet/:id` | Get details and presigned photo URL of a specific pet | Bearer JWT |
+| `PATCH` | `/pet/:id` | Update pet information | Bearer JWT |
+| `DELETE` | `/pet/:id` | Delete a pet and automatically remove its image from S3 | Bearer JWT |
 
 | POST | /auth/login |
 | POST | /auth/refresh |
+> **Multipart Upload for Pet Creation (`POST /pet`)**:
+> Acceptable file key: `pet-img` (`png`, `jpeg`, `jpg`, `webp`, max 3MB).
+> Fields: `name`, `race`, `species` (`dog` \| `cat` \| `bird` \| `other`), `birthDate` (`YYYY-MM-DD`), `notes` (optional).
 
 ##User
+### 💉 Vaccines (`/vaccines`)
 
 | Method | Endpoint |
 | ------ | -------- |
@@ -181,8 +523,14 @@ txt https://bucket-name.s3.region.amazonaws.com/image.png
 | GET | /user/me |
 | PATCH | /user/me |
 | DELETE | /user/me |
+| Method | Endpoint | Description | Auth |
+| :--- | :--- | :--- | :---: |
+| `POST` | `/vaccines` | Record a vaccine (`vaccineName`, `applicationDate`, `nextDueDate`) | Bearer JWT |
+| `GET` | `/vaccines/:petId` | List all vaccines registered for a specific pet | Bearer JWT |
+| `DELETE` | `/vaccines/:id` | Delete a vaccine record | Bearer JWT |
 
 ## Pets
+### ⚖️ Weight Records (`/weight`)
 
 | Method | Endpoint |
 | ------ | -------- |
@@ -190,32 +538,74 @@ txt https://bucket-name.s3.region.amazonaws.com/image.png
 | GET | /pet |
 | PATCH | /pet/:id |
 | DELETE | /pet/:id |
+| Method | Endpoint | Description | Auth |
+| :--- | :--- | :--- | :---: |
+| `POST` | `/weight` | Add a weight entry for a pet (`weight`, `date`, `petId`) | Bearer JWT |
+| `GET` | `/weight` | List all weight entries belonging to the user's pets | Bearer JWT |
+| `GET` | `/weight/:petId` | Retrieve full weight history for a specific pet | Bearer JWT |
+| `GET` | `/weight/:petId/last` | Get the last 10 weight records (tailored for trend charts) | Bearer JWT |
+| `DELETE` | `/weight/:id` | Remove a weight log entry | Bearer JWT |
+
+### 🔔 Notifications (`/notifications`)
+
+| Method | Endpoint | Description | Auth |
+| :--- | :--- | :--- | :---: |
+| `GET` | `/notifications` | List all in-app notifications for the authenticated user | Bearer JWT |
+| `GET` | `/notifications/unread-count` | Get total count of unread notifications | Bearer JWT |
+| `PATCH` | `/notifications/:id/read` | Mark a specific notification as read | Bearer JWT |
+| `PATCH` | `/notifications/read-all` | Mark all notifications as read in bulk | Bearer JWT |
 
 ---
 
 # Example of upload
+## 🧪 Testing & Code Quality
 
 ```http POST /pet Content-Type: multipart/form-data Authorization: Bearer token
+The project includes unit tests for services and controllers built with **Jest**:
 
 ````
+```bash
+# Run all unit tests
+pnpm run test
 
 Fields:
+# Run tests in watch mode
+pnpm run test:watch
 
 ```txt name race species birthDate pet-img
+# Generate test coverage report
+pnpm run test:cov
 
+# Run End-to-End (E2E) tests
+pnpm run test:e2e
+
+# Code style linting and formatting
+pnpm run lint
+pnpm run format
 ```
 
 ---
 
 # Project Objective
+## 🗺️ Roadmap & Planned Enhancements
 
 PetTracker was developed as a portfolio project focusing on a modern backend using NestJS, JWT authentication, and integration with AWS services.
+* [x] Google OAuth 2.0 single-use code exchange flow
+* [x] S3 Pre-signed expiring image URLs
+* [x] Daily automated Cron Job for vaccine alerts
+* [x] Rate Limiting (Throttler) and Helmet security hardening
+* [ ] Multi-image gallery for pets
+* [ ] Push Notifications (WebPush / FCM) and transactional emails (Resend / AWS SES)
+* [ ] Redis cache layer for high-throughput read operations
+* [ ] Export full pet medical history to PDF
+* [ ] CI/CD pipeline via GitHub Actions with automated test runs
 
 The project aims to simulate functionalities used in real SaaS applications.
 
 ---
 
 # Future Improvements
+## 👤 Author
 
 - Cloud deployment
 - CI/CD
@@ -226,11 +616,18 @@ The project aims to simulate functionalities used in real SaaS applications.
 - Notifications
 - Monitoring
 - Automated testing
+**Matheus Iost**
+
+* GitHub: [@theusinhoiost](https://github.com/theusinhoiost)
+* Frontend Repository: [PetTracker-Web](https://github.com/theusinhoiost/PetTracker-web)
+* Live Application: [pet-tracker-web.vercel.app](https://pet-tracker-web.vercel.app)
 
 ---
 
 # Author
+## 📄 License
 
 Matheus Iost
 
 Full Stack Developer
+This project is licensed under the [UNLICENSED](LICENSE) terms.

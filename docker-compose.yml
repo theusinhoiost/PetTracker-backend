@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: pettracker-db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: pettracker_user
+      POSTGRES_PASSWORD: PtR4nd0m_9x2k8Lm_qW7v
+      POSTGRES_DB: pettracker_db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
