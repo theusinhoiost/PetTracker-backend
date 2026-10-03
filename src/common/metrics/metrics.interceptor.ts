@@ -20,7 +20,12 @@ export class MetricsInterceptor implements NestInterceptor {
     return next.handle().pipe(
       tap(() => {
         const res = context.switchToHttp().getResponse();
-        const route = req.route?.path || req.url;
+        const route =
+          req.route?.path ||
+          req.route?.path ||
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+          req.url?.split('?')[0]?.replace(/\/[0-9a-fA-F]{24}|\/\d+/g, '/:id') ||
+          'unknown';
         const labels = { method: req.method, route };
 
         this.metrics.httpRequestsTotal.inc({

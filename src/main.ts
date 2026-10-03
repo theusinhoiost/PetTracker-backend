@@ -5,6 +5,7 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import { MetricsTokenGuard } from './common/metrics/metrics-token.guard';
+import { MetricsInterceptor } from './common/metrics/metrics.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -31,7 +32,17 @@ async function bootstrap() {
       referrerPolicy: { policy: 'no-referrer' },
     }),
   );
-  // ====================== METRICS ======================
+
+  // ====================== METRICS - ORDEM IMPORTA ======================
+  // 1. Pega o interceptor do container (já com MetricsService injetado)
+  const metricsInterceptor = app.get(MetricsInterceptor);
+  app.useGlobalInterceptors(metricsInterceptor);
+
+  // 2. Guard de metrics (deixa global mesmo, mas ele precisa liberar /metrics com token)
+  // Se seu guard usa @Injectable, melhor pegar do container tbm:
+  // const metricsGuard = app.get(MetricsTokenGuard);
+  // app.useGlobalGuards(metricsGuard);
+  // Por enquanto mantém o new se ele não tem dependência:
   app.useGlobalGuards(new MetricsTokenGuard());
 
   // ====================== CORS ======================

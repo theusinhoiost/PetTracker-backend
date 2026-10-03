@@ -8,7 +8,6 @@ import { VaccineModule } from './vaccine/vaccine.module';
 import { WeightModule } from './weight/weight.module';
 import { Weight } from './weight/entities/weight.entity';
 import { Vaccine } from './vaccine/entities/vaccine.entity';
-import { S3Service } from 'src/common/s3/s3.service';
 import { S3Module } from 'src/common/s3/s3.module';
 
 @Module({

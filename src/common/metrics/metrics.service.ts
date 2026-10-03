@@ -1,42 +1,38 @@
 import { Injectable } from '@nestjs/common';
-import {
-  Registry,
-  Counter,
-  Histogram,
-  collectDefaultMetrics,
-} from 'prom-client';
+import * as client from 'prom-client';
 
 @Injectable()
 export class MetricsService {
-  private readonly registry: Registry;
-
-  public readonly httpRequestsTotal: Counter<string>;
-  public readonly httpRequestDuration: Histogram<string>;
-
+  // já coletas do Node (CPU, mem, event loop)
   constructor() {
-    this.registry = new Registry();
-    collectDefaultMetrics({ register: this.registry });
-
-    this.httpRequestsTotal = new Counter({
-      name: 'http_requests_total',
-      help: 'Total de requisições HTTP',
-      labelNames: ['method', 'route', 'status'],
-      registers: [this.registry],
-    });
-
-    this.httpRequestDuration = new Histogram({
-      name: 'http_request_duration_seconds',
-      help: 'Duração das requisições HTTP',
-      labelNames: ['method', 'route'],
-      registers: [this.registry],
-    });
+    client.collectDefaultMetrics({ prefix: 'pettracker_' });
   }
 
-  async getMetrics(): Promise<string> {
-    return this.registry.metrics();
-  }
+  public httpRequestsTotal = new client.Counter({
+    name: 'http_requests_total',
+    help: 'Total HTTP requests',
+    labelNames: ['method', 'route', 'status'] as const,
+  });
 
-  getRegistry(): Registry {
-    return this.registry;
+  public httpRequestDuration = new client.Histogram({
+    name: 'http_request_duration_seconds',
+    help: 'Duration of HTTP requests in seconds',
+    labelNames: ['method', 'route'] as const,
+    buckets: [0.05, 0.1, 0.3, 0.5, 1, 1.5, 2, 5],
+  });
+
+  // bônus pra PetTracker - já deixa pronto pro dashboard V2
+  public petsCreatedTotal = new client.Counter({
+    name: 'pettracker_pets_created_total',
+    help: 'Total pets created',
+  });
+
+  public trackersOnline = new client.Gauge({
+    name: 'pettracker_trackers_online',
+    help: 'Trackers online',
+  });
+
+  async getMetrics() {
+    return client.register.metrics();
   }
 }

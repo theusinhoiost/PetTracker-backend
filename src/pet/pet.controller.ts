@@ -19,7 +19,6 @@ import { CreatePetDto } from './dto/create-pet.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import type { AuthenticatedRequest } from 'src/auth/types/authenticated-request';
 import { FileInterceptor } from '@nestjs/platform-express';
-import 'multer';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { UpdatePetDto } from './dto/update-pet.dto';
 @ApiBearerAuth()
